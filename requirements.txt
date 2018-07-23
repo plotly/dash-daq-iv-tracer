@@ -1,0 +1,9 @@
+dash
+plotly
+numpy
+dash-renderer
+dash-html-components
+dash-core-components
+dash_daq-0.0.3.tar.gz
+pyserial
+pyvisa
