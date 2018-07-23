@@ -1,1 +1,119 @@
 # dash-daq-iv-tracer
+
+## Introduction
+`dash-daq-iv-tracer` is a repository created to acquire current-voltage I-V curves with a Keithley 2400 SourceMeter.
+
+[Demo app on Heroku](https://dash-daq-iv-tracer.herokuapp.com/), and dashdaq.io [blog post](https://www.dashdaq.io/iv-curve-tracer-with-a-keithley-2400-sourcemeter/)
+
+### [Technique/field associated with the instrument]
+I-V curve is a good way to characterize electronic components (diode, transistor or solar cells) and extract their operating properties. It is widely used in electrical engineering and physics. 
+
+### dash-daq
+[Dash DAQ](http://dash-daq.netlify.com/#about) is a data acquisition and control package built on top of Plotly's [Dash](https://plot.ly/products/dash/).
+
+
+## Requirements
+It is advisable	to create a separate virtual environment running Python 3 for the app and install all of the required packages there. To do so, run (any version of Python 3 will work):
+
+```
+python3 -m virtualenv [your environment name]
+```
+```
+source activate [your environment name]
+```
+
+To install all of the required packages to this environment, simply run:
+
+```
+pip install -r requirements.txt
+```
+
+and all of the required `pip` packages, will be installed, and the app will be able to run.
+
+
+## How to use the app
+
+To control your SourceMeter, you need to input your COM/GPIB port number in the `app.py` file and set the `mock` attribute to `False`
+
+```
+iv_generator = keithley_instruments.KT2400([your instrument's com/gpib port], mock_mode=False)
+```
+
+You can then run the app :
+
+```
+$ python app.py
+```
+
+if you don't have the instrument connected to your computer but would still like to test the app you can run
+
+```
+$ python app_mock.py
+```
+
+You can also set the `mock` attribute to `True` in the `app.py` file.
+
+
+There is help about several of the app's components when you hover the mouse over them. A text Markdown on the app [demo](https://dash-daq-iv-tracer.herokuapp.com/) provides you with a 
+simple "how to" guide. For more detailed explanations please refer to the [blogpost](https://www.dashdaq.io/iv-curve-tracer-with-a-keithley-2400-sourcemeter/)
+
+## Resources
+
+Manual of the Keithley [2400](http://research.physics.illinois.edu/bezryadin/labprotocol/Keithley2400Manual.pdf)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# IV tracer
+
+ A Keithley 2400 is interfaced for IV curve tracing. The user can choose to source voltage and measure current, or the reverse. A single measurement can be acquired or a sweep can be defined 
+
+## Getting started
+
+1. Create a virtual environment with python 3.6, then execute
+
+	```
+	pip install -r requirements.txt
+	```
+
+	note : the package dash_daq should be delivered to you upon paid 
+	subscription of a package, please visit 
+	[our website](https://www.dashdaq.io) to get a subscription :)
+	
+2. Run the Dash demos
+		
+	To try out the interface without connecting to an instrument :
+	```
+	$ python app_mock.py
+	```
+	To try out the interface with an instrument
+	```
+	$ python app.py
+	```
+	
+	[Heroku app](https://dash-daq-iv-tracer.herokuapp.com/)
+## Dash
+
+Go to this link to learn about [Dash](https://plot.ly/products/dash/).
+
+
+## Testing your components in Dash
+
+
+## Installing python package locally
+...
+
+## Uninstalling python package locally
+...
