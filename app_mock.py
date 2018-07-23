@@ -418,14 +418,14 @@ def generate_main_layout(
             children=[
                 html.Div(
                     children=dcc.Markdown('''
-**What is this app about?**
+**What is this mock app about?**
 
 This is an app to show the graphic elements of Dash DAQ used to create an
 interface for an IV curve tracer using a Keithley 2400 SourceMeter. This mock
 demo does not actually connect to a physical instrument the values displayed
 are generated from an IV curve model for demonstration purposes.
 
-**How to use the app**
+**How to use the mock app**
 
 First choose if you want to source (apply) current or voltage, using the radio
 item located on the right of the graph area. Then choose if you want to operate
@@ -480,11 +480,12 @@ root_layout = html.Div(
             id='header',
             className='banner',
             children=[
-                html.H2('Dash DAQ: IV curve tracer'),
+                html.H2('Dash DAQ: IV curve tracer (mock app)'),
                 daq.ToggleSwitch(
                     id='toggleTheme',
                     label='Dark/Light layout',
                     size=30,
+                    style={'display': 'none'}
                 ),
                 html.Img(
                     src='https://s3-us-west-1.amazonaws.com/plotly'
@@ -511,7 +512,7 @@ root_layout = html.Div(
             children=generate_main_layout(),
             # className='ten columns',
             style={
-                'width': '100%'
+                'width': '100%',
             }
         )
     ]
@@ -973,7 +974,7 @@ def set_source_display(
                 if answer > float(swp_stop):
                     answer = old_source_display_val
 
-    return np.round(answer, 4)
+    return float("%.4f" % answer)
 
 
 @app.callback(

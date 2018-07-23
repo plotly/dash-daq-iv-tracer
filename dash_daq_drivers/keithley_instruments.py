@@ -7,7 +7,7 @@ labprotocol/Keithley2400Manual.pdf'
 """
 import numpy as np
 
-from generic_instruments import Instrument, INTF_PROLOGIX
+from .generic_instruments import Instrument, INTF_PROLOGIX
 
 
 def fake_iv_relation(
@@ -186,12 +186,12 @@ class KT2400(Instrument):
                 self.configure_voltage_source()
                 self.set_voltage(src_val)
                 answer = self.measure_current()
-                #self.disable_output()
+                self.disable_output()
             elif instr_param == 'I':
                 self.configure_current_source()
                 self.set_current(src_val)
                 answer = self.measure_voltage()
-                #self.disable_output()
+                self.disable_output()
             else:
                 print("The source type should be either 'I' or 'V'")
                 answer = np.nan

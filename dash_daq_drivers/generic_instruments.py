@@ -8,7 +8,7 @@ Created on Tue Mar 27 18:12:03 2018
 import serial
 import visa
 
-from communication_utils import PrologixController
+from .communication_utils import PrologixController
 
 # names to manage the different interfaces used to connect to an instrument
 INTF_VISA = 'pyvisa'
