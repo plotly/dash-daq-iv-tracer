@@ -13,14 +13,10 @@ import dash_daq as daq
 
 from dash_daq_drivers import keithley_instruments
 
-
-
 # Instance of a Keithley2400 connected with Prologix GPIB to USB controller
 iv_generator = keithley_instruments.KT2400(
     mock_mode=False
 )
-
-iv_generator.disable_auto_output_off()
 
 
 def is_instrument_port(port_name):
@@ -130,7 +126,7 @@ def get_source_max(source='V'):
     """units for source/measure elements"""
     if source == 'V':
         # we source voltage and measure current
-        return 90
+        return 20
     elif source == 'I':
         # we source current and measure voltage
         return 100
@@ -282,16 +278,30 @@ def generate_main_layout(
                         html.H4(
                             sourcemeter.instr_user_name,
                         ),
-                        html.Br(),
                         # A button to turn the instrument on or off
                         html.Div(
-                            id='power_button_div',
-                            children=daq.PowerButton(
-                                id='power_button',
-                                on='false'
-                            )
+                            children=[
+                                html.Div(
+                                    id='power_button_div',
+                                    children=daq.PowerButton(
+                                        id='power_button',
+                                        on='false'
+                                    )
+                                ),
+                                html.Br(),
+                                html.Div(
+                                    children=daq.Indicator(
+                                        id='mock_indicator',
+                                        value=sourcemeter.mock_mode,
+                                        label='is mock?'
+                                    ),
+                                    style={'margin': '20px'},
+                                    title='If the indicator is on, it means '
+                                          'the instrument is in mock mode'
+                                )
+                            ],
+                            style=h_style
                         ),
-                        html.Br(),
                         # An input to choose the COM/GPIB port
                         dcc.Input(
                             id='instr_port_input',
@@ -306,7 +316,12 @@ def generate_main_layout(
                             buttonText='Connect',
                             disabled=True
                         ),
-                        html.Br()
+                        html.Br(),
+                        html.Div(
+                            id='instr_status_div',
+                            children="",
+                            style={'margin': '10 px'}
+                        )
                     ],
                     style={
                         'display': 'flex',
@@ -407,7 +422,7 @@ def generate_main_layout(
                                             max=source_max,
                                             label=' %s' % source_unit,
                                             labelPosition='right',
-                                            value=1,
+                                            value=source_max / 20.,
                                             style={'margin': '5px'}
                                         )
                                     ],
@@ -666,16 +681,16 @@ def instrument_port_btn_update(pwr_status, text, placeholder):
 
 
 @app.callback(
-    Output('instr_port_button', 'n_clicks'),
+    Output('instr_status_div', 'children'),
     [],
     [State('instr_port_input', 'value')],
     [Event('instr_port_button', 'click')]
 )
 def instrument_port_btn_click(text):
     """reconnect the instrument to the new com port"""
-    self.instrument.connect(text)
-    print(self.instrument.ask('*IDN?'))
-    return 0
+    iv_generator.connect(text)
+    print(iv_generator.ask('*IDN?'))
+    return str(iv_generator.ask('*IDN?'))
 
 
 def automatic_grey_out_callback(div_id, app):
@@ -730,15 +745,13 @@ def automatic_enable_callback(div_id, app):
 
     return enable
 
+
 for div_id in [
     'clear-graph_btn',
     'trigger-measure_btn',
     'source-knob'
 ]:
     automatic_enable_callback(div_id, app)
-
-
-
 
 
 # ======= Callbacks for changing labels =======
@@ -879,24 +892,22 @@ def measure_display_label(src_type):
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Measured %s (%s)' % (measure_label, measure_unit)
-
-
-@app.callback(
-    Output('trigger-measure_btn', 'buttonText'),
-    [],
-    [
-        State('mode-choice', 'value')
-    ],
-    [
-        Event('mode-choice', 'change')
-    ]
-)
-def trigger_measure_label(mode_val):
-    """update the measure button upon choosing single or sweep"""
-    if mode_val == 'single':
-        return 'Single measure'
-    else:
-        return 'Start sweep'
+# @app.callback(
+#     Output('trigger-measure_btn', 'buttonText'),
+#     [],
+#     [
+#         State('mode-choice', 'value')
+#     ],
+#     [
+#         Event('mode-choice', 'change')
+#     ]
+# )
+# def trigger_measure_label(mode_val):
+#     """update the measure button upon choosing single or sweep"""
+#     if mode_val == 'single':
+#         return 'Single measure'
+#     else:
+#         return 'Start sweep'
 
 
 # ======= Callbacks to change elements in the layout =======
@@ -1004,6 +1015,34 @@ def sweep_step_max(src_type):
     return get_source_max(src_type)
 
 
+@app.callback(
+    Output('trigger-measure_btn', 'buttonText'),
+    [
+        Input('measure-triggered', 'value')
+    ],
+    [
+        State('trigger-measure_btn', 'buttonText'),
+        State('mode-choice', 'value')
+    ],
+    [
+        Event('mode-choice', 'change')
+    ]
+)
+def toggle_trigger_measure_button_label(measure_triggered, btn_text, mode_val):
+    """change the label of the trigger button"""
+
+    if mode_val == 'single':
+        return 'Single measure'
+    else:
+        if measure_triggered:
+            if btn_text == 'Start sweep':
+                return 'Stop sweep'
+            else:
+                return 'Start sweep'
+        else:
+            return 'Start sweep'
+
+
 # ======= Applied/measured values display =======
 @app.callback(
     Output('sweep-step', 'value'),
@@ -1085,9 +1124,11 @@ def reset_interval(swp_on, mode_val, n_interval):
 @app.callback(
     Output('sweep-status', 'value'),
     [
-        Input('source-display', 'value')
+        Input('source-display', 'value'),
+
     ],
     [
+        State('trigger-measure_btn', 'buttonText'),
         State('measure-triggered', 'value'),
         State('sweep-status', 'value'),
         State('sweep-stop', 'value'),
@@ -1100,6 +1141,7 @@ def reset_interval(swp_on, mode_val, n_interval):
 )
 def sweep_activation_toggle(
     sourced_val,
+    trig_button_text,
     meas_triggered,
     swp_on,
     swp_stop,
@@ -1119,13 +1161,23 @@ def sweep_activation_toggle(
             # The condition of continuation is to source lower than the sweep
             # limit minus one sweep step
             answer = float(sourced_val) <= float(swp_stop)-float(swp_step)
-            return answer
+            print('sweep on')
+            print(answer)
+
+            if trig_button_text == 'Start sweep':
+                # the button was clicked on and is back to Start sweep
+                return False
+            else:
+                # the button wasn't clicked on
+                return answer
         else:
-            if not meas_triggered:
+            if trig_button_text == 'Start sweep':
                 # The 'trigger-measure_btn' wasn't pressed yet
+                print('sweep not on, not considering')
                 return False
             else:
                 # Initiate a sweep
+                print('sweep not on, initiating')
                 return True
 
 
@@ -1145,12 +1197,16 @@ def set_source_knob_display(knob_val):
     Output('measure-triggered', 'value'),
     [
         Input('trigger-measure_btn', 'n_clicks'),
-        Input('mode-choice', 'value')
+        Input('mode-choice', 'value'),
+    ],
+    [
+        State('sweep-status', 'value')
     ]
 )
 def update_trigger_measure(
     nclick,
-    mode_val
+    mode_val,
+    swp_on
 ):
     """ Controls if a measure can be made or not
     The indicator 'measure-triggered' can be set to True only by a click
@@ -1165,8 +1221,9 @@ def update_trigger_measure(
         local_vars.change_n_clicks(int(nclick))
         return True
     else:
-        # It was triggered by a change of the mode
-        return False
+        if mode_val == 'single':
+            # It was triggered by a change of the mode
+            return False
 
 
 @app.callback(
