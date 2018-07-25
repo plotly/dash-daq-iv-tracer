@@ -33,10 +33,12 @@ and all of the required `pip` packages, will be installed, and the app will be a
 
 ## How to use the app
 
-To control your SourceMeter, you need to input your COM/GPIB port number in the `app.py` file and set the `mock` attribute to `False`
+![initial](img/index_page_example.png)
+
+To control your SourceMeter, you need to set the `mock` attribute to `False` in the `app.py` file
 
 ```
-iv_generator = keithley_instruments.KT2400([your instrument's com/gpib port], mock_mode=False)
+iv_generator = keithley_instruments.KT2400(mock_mode=False)
 ```
 
 You can then run the app :
@@ -45,7 +47,18 @@ You can then run the app :
 $ python app.py
 ```
 
-if you don't have the instrument connected to your computer but would still like to test the app you can run
+If you already know the COM/GPIB port number, you can feed it to the SourceMeter class
+
+```
+iv_generator = keithley_instruments.KT2400(
+  mock_mode=False,
+  instr_port_name=[your instrument's COM/GPIB port]
+)
+```
+
+Or you can enter it from the app display in your browser and click the button labelled 'Connect'
+
+If you don't have the instrument connected to your computer but would still like to test the app you can run
 
 ```
 $ python app_mock.py
