@@ -1045,7 +1045,7 @@ def toggle_trigger_measure_button_label(measure_triggered, btn_text, mode_val):
 
 # ======= Applied/measured values display =======
 @app.callback(
-    Output('sweep-step', 'value'),
+    Output('source-knob', 'value'),
     [],
     [
         State('source-knob', 'value'),
