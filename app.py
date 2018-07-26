@@ -15,7 +15,7 @@ from dash_daq_drivers import keithley_instruments
 
 # Instance of a Keithley2400 connected with Prologix GPIB to USB controller
 iv_generator = keithley_instruments.KT2400(
-    mock_mode=False
+    mock_mode=True
 )
 
 
@@ -135,6 +135,14 @@ def get_source_max(source='V'):
 h_style = {
     'display': 'flex',
     'flex-direction': 'row',
+    'alignItems': 'center',
+    'justifyContent': 'space-between',
+    'margin': '5px'
+}
+
+v_style = {
+    'display': 'flex',
+    'flex-direction': 'column',
     'alignItems': 'center',
     'justifyContent': 'space-between',
     'margin': '5px'
@@ -269,7 +277,8 @@ def generate_main_layout(
                             value=False,
                             style={'display': 'none'}
                         )
-                    ]
+                    ],
+                    style=v_style
                 ),
                 # controls for the connexion to the instrument
                 html.Div(
@@ -288,7 +297,6 @@ def generate_main_layout(
                                         on='false'
                                     )
                                 ),
-                                html.Br(),
                                 html.Div(
                                     children=daq.Indicator(
                                         id='mock_indicator',
@@ -300,7 +308,7 @@ def generate_main_layout(
                                           'the instrument is in mock mode'
                                 )
                             ],
-                            style=h_style
+                            style=v_style
                         ),
                         # An input to choose the COM/GPIB port
                         dcc.Input(
@@ -462,7 +470,7 @@ def generate_main_layout(
                 # measure button and indicator
                 html.Div(
                     id='trigger_div',
-                    className="two columns",
+                    className="three columns",
                     children=[
                         daq.StopButton(
                             id='trigger-measure_btn',
@@ -472,14 +480,16 @@ def generate_main_layout(
                         daq.Indicator(
                             id='measure-triggered',
                             value=False,
-                            label='Measure active'
+                            label='Measure active',
+                            style={'display': 'none'}
                         ),
-                    ]
+                    ],
+                    style=v_style
                 ),
                 # Display the sourced and measured values
                 html.Div(
                     id='measure_div',
-                    className="five columns",
+                    className="three columns",
                     children=[
                         daq.LEDDisplay(
                             id="source-display",
@@ -510,6 +520,7 @@ def generate_main_layout(
         ),
         html.Div(
             children=[
+                html.Br(),
                 html.Div(
                     children=dcc.Markdown('''
 **What is this app about?**
@@ -545,8 +556,8 @@ You can purchase the Dash DAQ components at [
 dashdaq.io](https://www.dashdaq.io/)
                     '''),
                     style={
-                        'max-width': '600px',
-                        'margin': '15px auto 300 px auto',
+                        'max-width': '800px',
+                        'margin': 'auto',
                         'padding': '40px',
                         'alignItems': 'left',
                         'box-shadow': '10px 10px 5px rgba(0, 0, 0, 0.2)',
@@ -554,8 +565,10 @@ dashdaq.io](https://www.dashdaq.io/)
                         'color': text_color[theme],
                         'background': bkg_color[theme]
                     }
-                )
-            ]
+                ),
+                html.Br()
+            ],
+            style=v_style
         )
     ]
 
@@ -574,7 +587,15 @@ root_layout = html.Div(
             id='header',
             className='banner',
             children=[
-                html.H2('Dash DAQ: IV curve tracer'),
+                html.H2(
+                    children='Dash DAQ: IV curve tracer',
+                    style={
+                        'color': 'white',
+                        'font-weight': '400',
+                        'font-family': 'Raleway',
+                        'margin-left': '20px'
+                    }
+                ),
                 daq.ToggleSwitch(
                     id='toggleTheme',
                     label='Dark/Light layout',
@@ -597,8 +618,7 @@ root_layout = html.Div(
                 'flexDirection': 'row',
                 'alignItems': 'center',
                 'justifyContent': 'space-between',
-                'background': '#A2B1C6',
-                'color': '#506784'
+                'background': '#A2B1C6'
             }
         ),
         html.Div(
@@ -1504,4 +1524,4 @@ def update_graph(
 # In[]:
 # Main
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
