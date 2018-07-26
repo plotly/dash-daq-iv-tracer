@@ -530,10 +530,10 @@ def generate_main_layout(
 
             ],
             style={
+                'display': 'flex',
                 'width': '100%',
-                'flexDirection': 'column',
+                'flexDirection': 'row',
                 'alignItems': 'center',
-                'justifyContent': 'space-between'
             }
         ),
         html.Div(
@@ -951,22 +951,6 @@ def measure_display_label(src_type):
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Measured %s (%s)' % (measure_label, measure_unit)
-# @app.callback(
-#     Output('trigger-measure_btn', 'buttonText'),
-#     [],
-#     [
-#         State('mode-choice', 'value')
-#     ],
-#     [
-#         Event('mode-choice', 'click')
-#     ]
-# )
-# def trigger_measure_label(mode_val):
-#     """update the measure button upon choosing single or sweep"""
-#     if get_mode(mode_val) == 'single':
-#         return 'Single measure'
-#     else:
-#         return 'Start sweep'
 
 
 # ======= Callbacks to change elements in the layout =======
@@ -1564,4 +1548,4 @@ def update_graph(
 # In[]:
 # Main
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
