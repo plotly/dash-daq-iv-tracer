@@ -15,7 +15,7 @@ from dash_daq_drivers import keithley_instruments
 
 # Instance of a Keithley2400 connected with Prologix GPIB to USB controller
 iv_generator = keithley_instruments.KT2400(
-    mock_mode=True
+    mock_mode=False
 )
 
 
@@ -550,7 +550,13 @@ are generated from an IV curve model for demonstration purposes.
 
 **How to use the app**
 
-First choose if you want to source (apply) current or voltage, using the
+First connect to your instrument using the section at the top-right of your
+screen. The `Connect` button will be enabled only if you provide a valid name
+for COM or GPIB (example : 'COM2' or 'GPIB0::11'. Click connect and the
+identifier of your instrument should display below the button, it means your
+instrument is well connected and can be used for measurements.
+
+Then choose if you want to source (apply) current or voltage, using the
 toggle switch located on the right of the graph area. Then choose if you
 want to operate in a single measurement mode or in a sweep mode.
 
@@ -569,6 +575,9 @@ sweep will be displayed on the graph.
 
 The data is never erased unless the button `CLEAR GRAPH is pressed` or if the
 source type is changed.
+
+If you press the Power Button, it will grey out the components and disable the
+buttons of the app
 
 You can purchase the Dash DAQ components at [
 dashdaq.io](https://www.dashdaq.io/)
@@ -1564,4 +1573,4 @@ def update_graph(
 # In[]:
 # Main
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # In[]:
 # Import required libraries
 import numpy as np
@@ -12,19 +13,21 @@ import dash_daq as daq
 
 from dash_daq_drivers import keithley_instruments
 
-# Instance of a Keithley2400
-iv_generator = keithley_instruments.KT2400('COM3', mock_mode=True)
+# Instance of a Keithley2400 connected with Prologix GPIB to USB controller
+iv_generator = keithley_instruments.KT2400(
+    mock_mode=True
+)
 
-# Define the app
-app = dash.Dash('')
-server = app.server
-app.config.suppress_callback_exceptions = False
-app.scripts.config.serve_locally = True
 
-# Load css file
-external_css = ["https://codepen.io/bachibouzouk/pen/ZRjdZN.css"]
-for css in external_css:
-    app.css.append_css({"external_url": css})
+def is_instrument_port(port_name):
+    """test if a string can be a com of gpib port"""
+    answer = False
+    if isinstance(port_name, str):
+        ports = ['COM', 'com', 'GPIB0::', 'gpib0::']
+        for port in ports:
+            if port in port_name:
+                answer = not (port == port_name)
+    return answer
 
 
 class UsefulVariables:
@@ -33,9 +36,9 @@ class UsefulVariables:
         self.n_clicks = 0
         self.n_clicks_clear_graph = 0
         self.n_refresh = 0
-        self.source = 'V'
+        self.source = False
         self.is_source_being_changed = False
-        self.mode = 'single'
+        self.mode = False
         self.sourced_values = []
         self.measured_values = []
 
@@ -79,14 +82,49 @@ bkg_color = {'dark': '#2a3f5f', 'light': '#F3F6FA'}
 grid_color = {'dark': 'white', 'light': '#C8D4E3'}
 text_color = {'dark': 'white', 'light': '#506784'}
 
+# Define the app
+app = dash.Dash(__name__)
+server = app.server
+app.config.suppress_callback_exceptions = False
+app.scripts.config.serve_locally = True
 
-def get_source_labels(source='V'):
+# Load css file
+external_css = ["https://codepen.io/bachibouzouk/pen/ZRjdZN.css"]
+for css in external_css:
+    app.css.append_css({"external_url": css})
+
+
+def get_mode(toggle_value=False):
+    """return a more comprehensive mode than True/False"""
+    if toggle_value:
+        return 'sweep'
+    else:
+        return 'single'
+
+
+def get_source(toggle_value=False):
+    """return a more comprehensive source than True/False"""
+    if toggle_value:
+        return 'I'
+    else:
+        return 'V'
+
+
+def get_mode_label(toggle_val=False):
+    """label for the mode choice"""
+    if toggle_val:
+        return 'Sweep'
+    else:
+        return 'Single measure'
+
+
+def get_source_labels(source=False):
     """labels for source/measure elements"""
-    if source == 'V':
+    if get_source(source) == 'V':
         # we source voltage and measure current
         source_label = 'Voltage'
         measure_label = 'Current'
-    elif source == 'I':
+    elif get_source(source) == 'I':
         # we source current and measure voltage
         source_label = 'Current'
         measure_label = 'Voltage'
@@ -94,18 +132,28 @@ def get_source_labels(source='V'):
     return source_label, measure_label
 
 
-def get_source_units(source='V'):
+def get_source_units(source=False):
     """units for source/measure elements"""
-    if source == 'V':
+    if get_source(source) == 'V':
         # we source voltage and measure current
         source_unit = 'V'
         measure_unit = 'A'
-    elif source == 'I':
+    elif get_source(source) == 'I':
         # we source current and measure voltage
         source_unit = 'A'
         measure_unit = 'V'
 
     return source_unit, measure_unit
+
+
+def get_source_max(source=False):
+    """units for source/measure elements"""
+    if get_source(source) == 'V':
+        # we source voltage and measure current
+        return 20
+    elif get_source(source) == 'I':
+        # we source current and measure voltage
+        return 100
 
 
 h_style = {
@@ -116,20 +164,30 @@ h_style = {
     'margin': '5px'
 }
 
+v_style = {
+    'display': 'flex',
+    'flex-direction': 'column',
+    'alignItems': 'center',
+    'justifyContent': 'space-between',
+    'margin': '5px'
+}
+
 
 # Create controls using a function
 def generate_main_layout(
     theme='light',
-    src_type='V',
-    mode_val='single',
+    src_type=False,
+    mode_val=False,
     fig=None,
+    sourcemeter=iv_generator
 ):
     """generate the layout of the app"""
 
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
+    source_max = get_source_max(src_type)
 
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         single_style = {
             'display': 'flex',
             'flex-direction': 'column',
@@ -164,6 +222,7 @@ def generate_main_layout(
             children=[
                 # graph to trace out the result(s) of the measurement(s)
                 html.Div(
+                    id='IV_graph_div',
                     className="eight columns",
                     children=[
                         dcc.Graph(
@@ -193,7 +252,7 @@ def generate_main_layout(
                 # controls and options for the IV tracer
                 html.Div(
                     className="two columns",
-                    id='IV-options',
+                    id='IV-options_div',
                     children=[
                         html.H4(
                             'Sourcing',
@@ -201,13 +260,10 @@ def generate_main_layout(
                                   'and measure current or source current and '
                                   'measure voltage'
                         ),
-                        dcc.RadioItems(
+                        daq.ToggleSwitch(
                             id='source-choice',
-                            options=[
-                                {'label': 'Voltage', 'value': 'V'},
-                                {'label': 'Current', 'value': 'I'}
-                            ],
-                            value=src_type
+                            value=src_type,
+                            label=source_label
                         ),
                         html.Br(),
                         html.H4(
@@ -215,13 +271,10 @@ def generate_main_layout(
                             title='Choose if you want to do single measurement'
                                   ' or to start a sweep'
                         ),
-                        dcc.RadioItems(
+                        daq.ToggleSwitch(
                             id='mode-choice',
-                            options=[
-                                {'label': 'Single measure', 'value': 'single'},
-                                {'label': 'Sweep', 'value': 'sweep'}
-                            ],
-                            value=mode_val
+                            value=mode_val,
+                            label=get_mode_label(mode_val)
                         ),
                         html.Br(),
                         html.Div(
@@ -242,12 +295,73 @@ def generate_main_layout(
                             value=False,
                             style={'display': 'none'}
                         )
-                    ]
+                    ],
+                    style=v_style
+                ),
+                # controls for the connexion to the instrument
+                html.Div(
+                    id='instr_controls',
+                    children=[
+                        html.H4(
+                            sourcemeter.instr_user_name,
+                        ),
+                        # A button to turn the instrument on or off
+                        html.Div(
+                            children=[
+                                html.Div(
+                                    id='power_button_div',
+                                    children=daq.PowerButton(
+                                        id='power_button',
+                                        on='false'
+                                    )
+                                ),
+                                html.Div(
+                                    children=daq.Indicator(
+                                        id='mock_indicator',
+                                        value=sourcemeter.mock_mode,
+                                        label='Mock mode indicator'
+                                    ),
+                                    style={'margin': '20px'},
+                                    title='If the indicator is on, it means '
+                                          'the instrument is in mock mode'
+                                )
+                            ],
+                            style=v_style
+                        ),
+                        # An input to choose the COM/GPIB port
+                        dcc.Input(
+                            id='instr_port_input',
+                            placeholder='Enter port name...',
+                            type='text',
+                            value=''
+                        ),
+                        html.Br(),
+                        # A button which will initiate the connexion
+                        daq.StopButton(
+                            id='instr_port_button',
+                            buttonText='Connect',
+                            disabled=True
+                        ),
+                        html.Br(),
+                        html.Div(
+                            id='instr_status_div',
+                            children="",
+                            style={'margin': '10 px'}
+                        )
+                    ],
+                    style={
+                        'display': 'flex',
+                        'flex-direction': 'column',
+                        'alignItems': 'center',
+                        'justifyContent': 'space-between',
+                        'border': '2px solid #C8D4E3',
+                        'background': '#f2f5fa'
+                    }
                 )
             ]
         ),
         html.Div(
-            id='measure_controls',
+            id='measure_controls_div',
             className='row',
             children=[
                 # Sourcing controls
@@ -264,7 +378,7 @@ def generate_main_layout(
                                     id='source-knob',
                                     value=0.00,
                                     min=0,
-                                    max=10,
+                                    max=source_max,
                                     label='%s (%s)' % (
                                         source_label,
                                         source_unit
@@ -295,9 +409,11 @@ def generate_main_layout(
                                         daq.PrecisionInput(
                                             id='sweep-start',
                                             precision=4,
+                                            min=0,
+                                            max=source_max,
                                             label=' %s' % source_unit,
                                             labelPosition='right',
-                                            value=0,
+                                            value=1,
                                             style={'margin': '5px'}
                                         ),
 
@@ -311,9 +427,11 @@ def generate_main_layout(
                                         daq.PrecisionInput(
                                             id='sweep-stop',
                                             precision=4,
+                                            min=0,
+                                            max=source_max,
                                             label=' %s' % source_unit,
                                             labelPosition='right',
-                                            value=10,
+                                            value=9,
                                             style={'margin': '5px'}
                                         )
                                     ],
@@ -326,9 +444,11 @@ def generate_main_layout(
                                         daq.PrecisionInput(
                                             id='sweep-step',
                                             precision=4,
+                                            min=0,
+                                            max=source_max,
                                             label=' %s' % source_unit,
                                             labelPosition='right',
-                                            value=0.2,
+                                            value=source_max / 20.,
                                             style={'margin': '5px'}
                                         )
                                     ],
@@ -340,8 +460,8 @@ def generate_main_layout(
                                         'Time of a step',
                                         daq.NumericInput(
                                             id='sweep-dt',
-                                            value=0.2,
-                                            min=0.01,
+                                            value=0.5,
+                                            min=0.1,
                                             style={'margin': '5px'}
                                         ),
                                         's'
@@ -367,8 +487,8 @@ def generate_main_layout(
                 ),
                 # measure button and indicator
                 html.Div(
-                    id='trigger-div',
-                    className="two columns",
+                    id='trigger_div',
+                    className="three columns",
                     children=[
                         daq.StopButton(
                             id='trigger-measure_btn',
@@ -378,14 +498,16 @@ def generate_main_layout(
                         daq.Indicator(
                             id='measure-triggered',
                             value=False,
-                            label='Measure active'
+                            label='Measure active',
+                            style={'display': 'none'}
                         ),
-                    ]
+                    ],
+                    style=v_style
                 ),
                 # Display the sourced and measured values
                 html.Div(
-                    id='measure-div',
-                    className="five columns",
+                    id='measure_div',
+                    className="three columns",
                     children=[
                         daq.LEDDisplay(
                             id="source-display",
@@ -416,20 +538,21 @@ def generate_main_layout(
         ),
         html.Div(
             children=[
+                html.Br(),
                 html.Div(
                     children=dcc.Markdown('''
-**What is this mock app about?**
+**What is this app about?**
 
 This is an app to show the graphic elements of Dash DAQ used to create an
 interface for an IV curve tracer using a Keithley 2400 SourceMeter. This mock
 demo does not actually connect to a physical instrument the values displayed
 are generated from an IV curve model for demonstration purposes.
 
-**How to use the mock app**
+**How to use the app**
 
-First choose if you want to source (apply) current or voltage, using the radio
-item located on the right of the graph area. Then choose if you want to operate
-in a single measurement mode or in a sweep mode.
+First choose if you want to source (apply) current or voltage, using the
+toggle switch located on the right of the graph area. Then choose if you
+want to operate in a single measurement mode or in a sweep mode.
 
 ***Single measurement mode***
 
@@ -451,8 +574,8 @@ You can purchase the Dash DAQ components at [
 dashdaq.io](https://www.dashdaq.io/)
                     '''),
                     style={
-                        'max-width': '600px',
-                        'margin': '15px auto 300 px auto',
+                        'max-width': '800px',
+                        'margin': 'auto',
                         'padding': '40px',
                         'alignItems': 'left',
                         'box-shadow': '10px 10px 5px rgba(0, 0, 0, 0.2)',
@@ -460,8 +583,10 @@ dashdaq.io](https://www.dashdaq.io/)
                         'color': text_color[theme],
                         'background': bkg_color[theme]
                     }
-                )
-            ]
+                ),
+                html.Br()
+            ],
+            style=v_style
         )
     ]
 
@@ -480,7 +605,15 @@ root_layout = html.Div(
             id='header',
             className='banner',
             children=[
-                html.H2('Dash DAQ: IV curve tracer (mock app)'),
+                html.H2(
+                    children='Dash DAQ: IV curve tracer',
+                    style={
+                        'color': 'white',
+                        'font-weight': '400',
+                        'font-family': 'Raleway',
+                        'margin-left': '20px'
+                    }
+                ),
                 daq.ToggleSwitch(
                     id='toggleTheme',
                     label='Dark/Light layout',
@@ -488,9 +621,9 @@ root_layout = html.Div(
                     style={'display': 'none'}
                 ),
                 html.Img(
-                    src='https://s3-us-west-1.amazonaws.com/plotly'
-                        '-tutorials/excel/dash-daq/dash-daq-logo'
-                        '-by-plotly-stripe.png',
+                    src='https://s3-us-west-1.amazonaws.com/plotly-tutorials'
+                        '/excel/dash-daq/'
+                        'dash-daq-logo-by-plotly-stripe+copy.png',
                     style={
                         'height': '100',
                         'float': 'right',
@@ -503,8 +636,7 @@ root_layout = html.Div(
                 'flexDirection': 'row',
                 'alignItems': 'center',
                 'justifyContent': 'space-between',
-                'background': '#A2B1C6',
-                'color': '#506784'
+                'background': '#A2B1C6'
             }
         ),
         html.Div(
@@ -512,7 +644,7 @@ root_layout = html.Div(
             children=generate_main_layout(),
             # className='ten columns',
             style={
-                'width': '100%',
+                'width': '100%'
             }
         )
     ]
@@ -564,7 +696,124 @@ def page_style(value, style_dict):
     return style_dict
 
 
+# ======= Power on/off toggle callbacks =======
+@app.callback(
+    Output('instr_port_button', 'disabled'),
+    [Input('power_button', 'on')],
+    [
+        State('instr_port_input', 'value'),
+        State('instr_port_input', 'placeholder')
+    ],
+    [Event('instr_port_input', 'change')]
+)
+def instrument_port_btn_update(pwr_status, text, placeholder):
+    """enable or disable the connect button
+    depending on the port name
+    """
+    answer = True
+
+    if text != placeholder:
+        if is_instrument_port(text):
+            answer = not pwr_status
+    return answer
+
+
+@app.callback(
+    Output('instr_status_div', 'children'),
+    [],
+    [State('instr_port_input', 'value')],
+    [Event('instr_port_button', 'click')]
+)
+def instrument_port_btn_click(text):
+    """reconnect the instrument to the new com port"""
+    iv_generator.connect(text)
+    return str(iv_generator.ask('*IDN?'))
+
+
+def automatic_grey_out_callback(div_id, app):
+    """generate a callback for the gauges which number can vary from instrument
+        to instrument.
+    """
+
+    @app.callback(
+        Output(div_id, 'style'),
+        [Input('power_button', 'on')],
+        [State(div_id, 'style')],
+    )
+    def grey_out(pwr_status, style_dict):
+        if style_dict is None:
+            answer = {}
+        else:
+            answer = style_dict
+        if pwr_status:
+            answer['opacity'] = 1
+        else:
+            answer['opacity'] = 0.3
+        return answer
+
+    grey_out.__name__ = 'grey_out_%s' % (div_id)
+
+    return grey_out
+
+
+for div_id in [
+    'IV_graph_div',
+    'IV-options_div',
+    'measure_controls_div',
+    'measure_div',
+    'trigger_div'
+]:
+    automatic_grey_out_callback(div_id, app)
+
+
+def automatic_enable_callback(div_id, app):
+    """generate a callback for the gauges which number can vary from instrument
+        to instrument.
+    """
+
+    @app.callback(
+        Output(div_id, 'disabled'),
+        [Input('power_button', 'on')]
+    )
+    def enable(pwr_status):
+        return not pwr_status
+
+    enable.__name__ = 'enable_%s' % (div_id)
+
+    return enable
+
+
+for div_id in [
+    'clear-graph_btn',
+    'trigger-measure_btn',
+    'source-knob'
+]:
+    automatic_enable_callback(div_id, app)
+
+
 # ======= Callbacks for changing labels =======
+@app.callback(
+    Output('source-choice', 'label'),
+    [
+        Input('source-choice', 'value')
+    ]
+)
+def source_choice_label(src_type):
+    """update label upon modification of Toggle Switch"""
+    return get_source_labels(src_type)[0]
+
+
+@app.callback(
+    Output('mode-choice', 'label'),
+    [
+        Input('mode-choice', 'value')
+    ]
+)
+def mode_choice_label(mode_val):
+    """update label upon modification of Toggle Switch"""
+    return get_mode_label(mode_val)
+
+
 @app.callback(
     Output('source-knob', 'label'),
     [],
@@ -572,12 +821,12 @@ def page_style(value, style_dict):
         State('source-choice', 'value'),
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def source_knob_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_label, measure_label = get_source_labels(src_type)
     return source_label
 
@@ -589,12 +838,12 @@ def source_knob_label(src_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def source_knob_display_label(scr_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_label, measure_label = get_source_labels(scr_type)
     source_unit, measure_unit = get_source_units(scr_type)
     return 'Value : %s (%s)' % (source_label, source_unit)
@@ -607,12 +856,12 @@ def source_knob_display_label(scr_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def sweep_start_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
 
@@ -624,12 +873,12 @@ def sweep_start_label(src_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def sweep_stop_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
 
@@ -641,12 +890,12 @@ def sweep_stop_label(src_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def sweep_step_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
 
@@ -658,12 +907,12 @@ def sweep_step_label(src_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def sweep_title_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_label, measure_label = get_source_labels(src_type)
     return html.H4("%s sweep:" % source_label)
 
@@ -675,12 +924,12 @@ def sweep_title_label(src_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def source_display_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Applied %s (%s)' % (source_label, source_unit)
@@ -693,33 +942,31 @@ def source_display_label(src_type):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
+        Event('source-choice', 'click'),
+        Event('mode-choice', 'click')
     ]
 )
 def measure_display_label(src_type):
-    """update label upon modification of Radio Items"""
+    """update label upon modification of Toggle Switch"""
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Measured %s (%s)' % (measure_label, measure_unit)
-
-
-@app.callback(
-    Output('trigger-measure_btn', 'buttonText'),
-    [],
-    [
-        State('mode-choice', 'value')
-    ],
-    [
-        Event('mode-choice', 'change')
-    ]
-)
-def trigger_measure_label(mode_val):
-    """update the measure button upon choosing single or sweep"""
-    if mode_val == 'single':
-        return 'Single measure'
-    else:
-        return 'Start sweep'
+# @app.callback(
+#     Output('trigger-measure_btn', 'buttonText'),
+#     [],
+#     [
+#         State('mode-choice', 'value')
+#     ],
+#     [
+#         Event('mode-choice', 'click')
+#     ]
+# )
+# def trigger_measure_label(mode_val):
+#     """update the measure button upon choosing single or sweep"""
+#     if get_mode(mode_val) == 'single':
+#         return 'Single measure'
+#     else:
+#         return 'Start sweep'
 
 
 # ======= Callbacks to change elements in the layout =======
@@ -730,12 +977,12 @@ def trigger_measure_label(mode_val):
         State('mode-choice', 'value')
     ],
     [
-        Event('mode-choice', 'change')
+        Event('mode-choice', 'click')
     ]
 )
 def single_div_toggle_style(mode_val):
     """toggle the layout for single measure"""
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         return {
             'display': 'flex',
             'flex-direction': 'column',
@@ -752,12 +999,12 @@ def single_div_toggle_style(mode_val):
         State('mode-choice', 'value')
     ],
     [
-        Event('mode-choice', 'change')
+        Event('mode-choice', 'click')
     ]
 )
 def sweep_div_toggle_style(mode_val):
     """toggle the layout for sweep"""
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         return {'display': 'none'}
     else:
         return {
@@ -765,6 +1012,94 @@ def sweep_div_toggle_style(mode_val):
             'flex-direction': 'column',
             'alignItems': 'center'
         }
+
+
+@app.callback(
+    Output('source-knob', 'max'),
+    [],
+    [
+        State('source-choice', 'value')
+    ],
+    [
+        Event('source-choice', 'click'),
+    ]
+)
+def source_knob_max(src_type):
+    """update max value upon changing source type"""
+    return get_source_max(src_type)
+
+
+@app.callback(
+    Output('sweep-start', 'max'),
+    [],
+    [
+        State('source-choice', 'value')
+    ],
+    [
+        Event('source-choice', 'click'),
+    ]
+)
+def sweep_start_max(src_type):
+    """update max value upon changing source type"""
+    return get_source_max(src_type)
+
+
+@app.callback(
+    Output('sweep-stop', 'max'),
+    [],
+    [
+        State('source-choice', 'value')
+    ],
+    [
+        Event('source-choice', 'click'),
+    ]
+)
+def sweep_stop_max(src_type):
+    """update max value upon changing source type"""
+    return get_source_max(src_type)
+
+
+@app.callback(
+    Output('sweep-step', 'max'),
+    [],
+    [
+        State('source-choice', 'value')
+    ],
+    [
+        Event('source-choice', 'click'),
+    ]
+)
+def sweep_step_max(src_type):
+    """update max value upon changing source type"""
+    return get_source_max(src_type)
+
+
+@app.callback(
+    Output('trigger-measure_btn', 'buttonText'),
+    [
+        Input('measure-triggered', 'value')
+    ],
+    [
+        State('trigger-measure_btn', 'buttonText'),
+        State('mode-choice', 'value')
+    ],
+    [
+        Event('mode-choice', 'click')
+    ]
+)
+def toggle_trigger_measure_button_label(measure_triggered, btn_text, mode_val):
+    """change the label of the trigger button"""
+
+    if get_mode(mode_val) == 'single':
+        return 'Single measure'
+    else:
+        if measure_triggered:
+            if btn_text == 'Start sweep':
+                return 'Stop sweep'
+            else:
+                return 'Start sweep'
+        else:
+            return 'Start sweep'
 
 
 # ======= Applied/measured values display =======
@@ -776,7 +1111,7 @@ def sweep_div_toggle_style(mode_val):
         State('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change')
+        Event('source-choice', 'click')
     ]
 )
 def source_change(src_val, src_type):
@@ -810,7 +1145,7 @@ def interval_toggle(swp_on, mode_val, dt):
     if dt <= 0:
         # Precaution against the user
         dt = 0.5
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         return 1000000
     else:
         if swp_on:
@@ -828,13 +1163,13 @@ def interval_toggle(swp_on, mode_val, dt):
         State('refresher', 'n_intervals')
     ],
     [
-        Event('mode-choice', 'change'),
+        Event('mode-choice', 'click'),
         Event('trigger-measure_btn', 'click')
     ]
 )
 def reset_interval(swp_on, mode_val, n_interval):
     """reset the n_interval of the dcc.Interval once a sweep is done"""
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         local_vars.reset_interval()
         return 0
     else:
@@ -848,9 +1183,11 @@ def reset_interval(swp_on, mode_val, n_interval):
 @app.callback(
     Output('sweep-status', 'value'),
     [
-        Input('source-display', 'value')
+        Input('source-display', 'value'),
+
     ],
     [
+        State('trigger-measure_btn', 'buttonText'),
         State('measure-triggered', 'value'),
         State('sweep-status', 'value'),
         State('sweep-stop', 'value'),
@@ -863,6 +1200,7 @@ def reset_interval(swp_on, mode_val, n_interval):
 )
 def sweep_activation_toggle(
     sourced_val,
+    trig_button_text,
     meas_triggered,
     swp_on,
     swp_stop,
@@ -875,16 +1213,22 @@ def sweep_activation_toggle(
     otherwise it stops the sweep once the sourced value gets higher or equal
     than the sweep limit minus the sweep step
     """
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         return False
     else:
         if swp_on:
             # The condition of continuation is to source lower than the sweep
             # limit minus one sweep step
             answer = float(sourced_val) <= float(swp_stop)-float(swp_step)
-            return answer
+
+            if trig_button_text == 'Start sweep':
+                # the button was clicked on and is back to Start sweep
+                return False
+            else:
+                # the button wasn't clicked on
+                return answer
         else:
-            if not meas_triggered:
+            if trig_button_text == 'Start sweep':
                 # The 'trigger-measure_btn' wasn't pressed yet
                 return False
             else:
@@ -908,12 +1252,16 @@ def set_source_knob_display(knob_val):
     Output('measure-triggered', 'value'),
     [
         Input('trigger-measure_btn', 'n_clicks'),
-        Input('mode-choice', 'value')
+        Input('mode-choice', 'value'),
+    ],
+    [
+        State('sweep-status', 'value')
     ]
 )
 def update_trigger_measure(
     nclick,
-    mode_val
+    mode_val,
+    swp_on
 ):
     """ Controls if a measure can be made or not
     The indicator 'measure-triggered' can be set to True only by a click
@@ -928,8 +1276,9 @@ def update_trigger_measure(
         local_vars.change_n_clicks(int(nclick))
         return True
     else:
-        # It was triggered by a change of the mode
-        return False
+        if get_mode(mode_val) == 'single':
+            # It was triggered by a change of the mode
+            return False
 
 
 @app.callback(
@@ -961,20 +1310,19 @@ def set_source_display(
 ):
     """"set the source value to the instrument"""
 
-    # Default answer
     answer = old_source_display_val
 
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         answer = knob_val
     else:
         if meas_triggered:
             if swp_on:
-                answer = float(swp_start) \
+                new_val = float(swp_start) \
                          + (int(n_interval) - 1) * float(swp_step)
-                if answer > float(swp_stop):
-                    answer = old_source_display_val
+                if new_val <= float(swp_stop):
+                    answer = new_val
 
-    return float("%.4f" % answer)
+    return round(answer, 4)
 
 
 @app.callback(
@@ -1007,12 +1355,15 @@ def update_measure_display(
     source_value = float(src_val)
     measured_value = meas_old_val
 
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         if meas_triggered:
             # Save the sourced value
             local_vars.sourced_values.append(source_value)
             # Initiate a measurement
-            measured_value = iv_generator.source_and_measure(src_type, src_val)
+            measured_value = iv_generator.source_and_measure(
+                get_source(src_type),
+                src_val
+            )
             # Save the measured value
             local_vars.measured_values.append(measured_value)
     else:
@@ -1020,7 +1371,10 @@ def update_measure_display(
             # Save the sourced value
             local_vars.sourced_values.append(source_value)
             # Initiate a measurement
-            measured_value = iv_generator.source_and_measure(src_type, src_val)
+            measured_value = iv_generator.source_and_measure(
+                get_source(src_type),
+                src_val
+            )
             # Save the measured value
             local_vars.measured_values.append(measured_value)
 
@@ -1099,7 +1453,7 @@ def update_graph(
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
 
-    if mode_val == 'single':
+    if get_mode(mode_val) == 'single':
         if meas_triggered:
             # The change to the graph was triggered by a measure
 
@@ -1210,4 +1564,4 @@ def update_graph(
 # In[]:
 # Main
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
