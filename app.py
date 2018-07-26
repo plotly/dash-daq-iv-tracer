@@ -260,14 +260,6 @@ def generate_main_layout(
                                   'and measure current or source current and '
                                   'measure voltage'
                         ),
-                        # dcc.RadioItems(
-                        #     id='source-choice',
-                        #     options=[
-                        #         {'label': 'Voltage', 'value': 'V'},
-                        #         {'label': 'Current', 'value': 'I'}
-                        #     ],
-                        #     value=src_type
-                        # ),
                         daq.ToggleSwitch(
                             id='source-choice',
                             value=src_type,
@@ -282,7 +274,7 @@ def generate_main_layout(
                         daq.ToggleSwitch(
                             id='mode-choice',
                             value=mode_val,
-                            label='Single measure'
+                            label=get_mode_label(mode_val)
                         ),
                         html.Br(),
                         html.Div(
@@ -327,7 +319,7 @@ def generate_main_layout(
                                     children=daq.Indicator(
                                         id='mock_indicator',
                                         value=sourcemeter.mock_mode,
-                                        label='is mock?'
+                                        label='Mock mode indicator'
                                     ),
                                     style={'margin': '20px'},
                                     title='If the indicator is on, it means '
@@ -558,8 +550,8 @@ are generated from an IV curve model for demonstration purposes.
 
 **How to use the app**
 
-First choose if you want to source (apply) current or voltage, using the 
-toggle switch located on the right of the graph area. Then choose if you 
+First choose if you want to source (apply) current or voltage, using the
+toggle switch located on the right of the graph area. Then choose if you
 want to operate in a single measurement mode or in a sweep mode.
 
 ***Single measurement mode***
@@ -629,9 +621,9 @@ root_layout = html.Div(
                     style={'display': 'none'}
                 ),
                 html.Img(
-                    src='https://s3-us-west-1.amazonaws.com/plotly'
-                        '-tutorials/excel/dash-daq/dash-daq-logo'
-                        '-by-plotly-stripe.png',
+                    src='https://s3-us-west-1.amazonaws.com/plotly-tutorials'
+                        '/excel/dash-daq/'
+                        'dash-daq-logo-by-plotly-stripe+copy.png',
                     style={
                         'height': '100',
                         'float': 'right',
@@ -735,7 +727,6 @@ def instrument_port_btn_update(pwr_status, text, placeholder):
 def instrument_port_btn_click(text):
     """reconnect the instrument to the new com port"""
     iv_generator.connect(text)
-    print(iv_generator.ask('*IDN?'))
     return str(iv_generator.ask('*IDN?'))
 
 
@@ -1229,8 +1220,6 @@ def sweep_activation_toggle(
             # The condition of continuation is to source lower than the sweep
             # limit minus one sweep step
             answer = float(sourced_val) <= float(swp_stop)-float(swp_step)
-            print('sweep on')
-            print(answer)
 
             if trig_button_text == 'Start sweep':
                 # the button was clicked on and is back to Start sweep
@@ -1241,11 +1230,9 @@ def sweep_activation_toggle(
         else:
             if trig_button_text == 'Start sweep':
                 # The 'trigger-measure_btn' wasn't pressed yet
-                print('sweep not on, not considering')
                 return False
             else:
                 # Initiate a sweep
-                print('sweep not on, initiating')
                 return True
 
 
@@ -1322,21 +1309,20 @@ def set_source_display(
     swp_on
 ):
     """"set the source value to the instrument"""
+
+    answer = old_source_display_val
+
     if get_mode(mode_val) == 'single':
-        return knob_val
+        answer = knob_val
     else:
         if meas_triggered:
             if swp_on:
-                answer = float(swp_start) \
+                new_val = float(swp_start) \
                          + (int(n_interval) - 1) * float(swp_step)
-                if answer > float(swp_stop):
-                    return old_source_display_val
-                else:
-                    return answer
-            else:
-                return old_source_display_val
-        else:
-            return old_source_display_val
+                if new_val <= float(swp_stop):
+                    answer = new_val
+
+    return round(answer, 4)
 
 
 @app.callback(
@@ -1374,7 +1360,10 @@ def update_measure_display(
             # Save the sourced value
             local_vars.sourced_values.append(source_value)
             # Initiate a measurement
-            measured_value = iv_generator.source_and_measure(src_type, src_val)
+            measured_value = iv_generator.source_and_measure(
+                get_source(src_type),
+                src_val
+            )
             # Save the measured value
             local_vars.measured_values.append(measured_value)
     else:
@@ -1382,7 +1371,10 @@ def update_measure_display(
             # Save the sourced value
             local_vars.sourced_values.append(source_value)
             # Initiate a measurement
-            measured_value = iv_generator.source_and_measure(src_type, src_val)
+            measured_value = iv_generator.source_and_measure(
+                get_source(src_type),
+                src_val
+            )
             # Save the measured value
             local_vars.measured_values.append(measured_value)
 
