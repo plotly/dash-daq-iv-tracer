@@ -1,4 +1,4 @@
-dash
+dash>=0.26.0
 plotly
 numpy
 dash-renderer
