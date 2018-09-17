@@ -3,7 +3,7 @@
 ## Introduction
 `dash-daq-iv-tracer` is a repository created to acquire current-voltage I-V curves with a Keithley 2400 SourceMeter.
 
-[Demo app on Heroku](https://dash-daq-iv-tracer.herokuapp.com/), and dashdaq.io [blog post](https://www.dashdaq.io/iv-curve-tracer-with-a-keithley-2400-sourcemeter/)
+[Demo app on DDS](https://dash-gallery.plotly.host/dash-daq-iv-tracer), and dashdaq.io [blog post](https://www.dashdaq.io/iv-curve-tracer-with-a-keithley-2400-sourcemeter/)
 
 ### [Technique/field associated with the instrument]
 I-V curve is a good way to characterize electronic components (diode, transistor or solar cells) and extract their operating properties. It is widely used in electrical engineering and physics. 
