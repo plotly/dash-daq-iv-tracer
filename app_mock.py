@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-from dash.dependencies import Input, Output, State, Event
+from dash.dependencies import Input, Output, State
 
 import dash_daq as daq
 
@@ -119,10 +119,10 @@ h_style = {
 
 # Create controls using a function
 def generate_main_layout(
-    theme='light',
-    src_type='V',
-    mode_val='single',
-    fig=None,
+        theme='light',
+        src_type='V',
+        mode_val='single',
+        fig=None,
 ):
     """generate the layout of the app"""
 
@@ -567,16 +567,12 @@ def page_style(value, style_dict):
 # ======= Callbacks for changing labels =======
 @app.callback(
     Output('source-knob', 'label'),
-    [],
     [
-        State('source-choice', 'value'),
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def source_knob_label(src_type):
+def source_knob_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     return source_label
@@ -584,16 +580,12 @@ def source_knob_label(src_type):
 
 @app.callback(
     Output('source-knob-display', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def source_knob_display_label(scr_type):
+def source_knob_display_label(scr_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(scr_type)
     source_unit, measure_unit = get_source_units(scr_type)
@@ -602,16 +594,12 @@ def source_knob_display_label(scr_type):
 
 @app.callback(
     Output('sweep-start', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_start_label(src_type):
+def sweep_start_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
@@ -619,16 +607,12 @@ def sweep_start_label(src_type):
 
 @app.callback(
     Output('sweep-stop', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_stop_label(src_type):
+def sweep_stop_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
@@ -636,16 +620,12 @@ def sweep_stop_label(src_type):
 
 @app.callback(
     Output('sweep-step', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_step_label(src_type):
+def sweep_step_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
@@ -653,16 +633,12 @@ def sweep_step_label(src_type):
 
 @app.callback(
     Output('sweep-title', 'children'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_title_label(src_type):
+def sweep_title_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     return html.H4("%s sweep:" % source_label)
@@ -670,16 +646,12 @@ def sweep_title_label(src_type):
 
 @app.callback(
     Output('source-display', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def source_display_label(src_type):
+def source_display_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
@@ -688,16 +660,12 @@ def source_display_label(src_type):
 
 @app.callback(
     Output('measure-display', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def measure_display_label(src_type):
+def measure_display_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
@@ -706,13 +674,9 @@ def measure_display_label(src_type):
 
 @app.callback(
     Output('trigger-measure_btn', 'buttonText'),
-    [],
     [
-        State('mode-choice', 'value')
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('mode-choice', 'change')
-    ]
 )
 def trigger_measure_label(mode_val):
     """update the measure button upon choosing single or sweep"""
@@ -725,13 +689,9 @@ def trigger_measure_label(mode_val):
 # ======= Callbacks to change elements in the layout =======
 @app.callback(
     Output('single_div', 'style'),
-    [],
     [
-        State('mode-choice', 'value')
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('mode-choice', 'change')
-    ]
 )
 def single_div_toggle_style(mode_val):
     """toggle the layout for single measure"""
@@ -747,13 +707,9 @@ def single_div_toggle_style(mode_val):
 
 @app.callback(
     Output('sweep_div', 'style'),
-    [],
     [
-        State('mode-choice', 'value')
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('mode-choice', 'change')
-    ]
 )
 def sweep_div_toggle_style(mode_val):
     """toggle the layout for sweep"""
@@ -770,16 +726,14 @@ def sweep_div_toggle_style(mode_val):
 # ======= Applied/measured values display =======
 @app.callback(
     Output('source-knob', 'value'),
-    [],
     [
-        State('source-knob', 'value'),
-        State('source-choice', 'value')
+        Input('source-choice', 'value')
     ],
     [
-        Event('source-choice', 'change')
+        State('source-knob', 'value'),
     ]
 )
-def source_change(src_val, src_type):
+def source_change(src_type, src_val):
     """modification upon source-change
     change the source type in local_vars
     reset the knob to zero
@@ -821,18 +775,16 @@ def interval_toggle(swp_on, mode_val, dt):
 
 @app.callback(
     Output('refresher', 'n_intervals'),
-    [],
     [
-        State('sweep-status', 'value'),
-        State('mode-choice', 'value'),
-        State('refresher', 'n_intervals')
+        Input('trigger-measure_btn', 'n_clicks'),
+        Input('mode-choice', 'value')
     ],
     [
-        Event('mode-choice', 'change'),
-        Event('trigger-measure_btn', 'click')
+        State('sweep-status', 'value'),
+        State('refresher', 'n_intervals')
     ]
 )
-def reset_interval(swp_on, mode_val, n_interval):
+def reset_interval(_, mode_val, swp_on, n_interval):
     """reset the n_interval of the dcc.Interval once a sweep is done"""
     if mode_val == 'single':
         local_vars.reset_interval()
@@ -848,6 +800,7 @@ def reset_interval(swp_on, mode_val, n_interval):
 @app.callback(
     Output('sweep-status', 'value'),
     [
+        Input('trigger-measure_btn', 'n_clicks'),
         Input('source-display', 'value')
     ],
     [
@@ -856,18 +809,16 @@ def reset_interval(swp_on, mode_val, n_interval):
         State('sweep-stop', 'value'),
         State('sweep-step', 'value'),
         State('mode-choice', 'value')
-    ],
-    [
-        Event('trigger-measure_btn', 'click')
     ]
 )
 def sweep_activation_toggle(
-    sourced_val,
-    meas_triggered,
-    swp_on,
-    swp_stop,
-    swp_step,
-    mode_val
+        _,
+        sourced_val,
+        meas_triggered,
+        swp_on,
+        swp_stop,
+        swp_step,
+        mode_val
 ):
     """decide whether to turn on or off the sweep
     when single mode is selected, it is off by default
@@ -911,10 +862,7 @@ def set_source_knob_display(knob_val):
         Input('mode-choice', 'value')
     ]
 )
-def update_trigger_measure(
-    nclick,
-    mode_val
-):
+def update_trigger_measure(nclick, _):
     """ Controls if a measure can be made or not
     The indicator 'measure-triggered' can be set to True only by a click
     on the 'trigger-measure_btn' button or by the 'refresher' interval
@@ -949,15 +897,15 @@ def update_trigger_measure(
     ]
 )
 def set_source_display(
-    n_interval,
-    meas_triggered,
-    knob_val,
-    old_source_display_val,
-    swp_start,
-    swp_stop,
-    swp_step,
-    mode_val,
-    swp_on
+        n_interval,
+        meas_triggered,
+        knob_val,
+        old_source_display_val,
+        swp_start,
+        swp_stop,
+        swp_step,
+        mode_val,
+        swp_on
 ):
     """"set the source value to the instrument"""
 
@@ -991,12 +939,12 @@ def set_source_display(
     ]
 )
 def update_measure_display(
-    src_val,
-    meas_triggered,
-    meas_old_val,
-    src_type,
-    mode_val,
-    swp_on
+        src_val,
+        meas_triggered,
+        meas_old_val,
+        src_type,
+        mode_val,
+        swp_on
 ):
     """"read the measured value from the instrument
     check if a measure should be made
@@ -1035,7 +983,6 @@ def update_measure_display(
         Input('clear-graph_btn', 'n_clicks'),
         Input('measure-triggered', 'value')
     ],
-    [],
     []
 )
 def clear_graph_click(src_val, nclick, meas_triggered):

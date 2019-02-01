@@ -7,7 +7,7 @@ import plotly.graph_objs as go
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-from dash.dependencies import Input, Output, State, Event
+from dash.dependencies import Input, Output, State
 
 import dash_daq as daq
 
@@ -143,11 +143,11 @@ h_style = {
 
 # Create controls using a function
 def generate_main_layout(
-    theme='light',
-    src_type='V',
-    mode_val='single',
-    fig=None,
-    sourcemeter=iv_generator
+        theme='light',
+        src_type='V',
+        mode_val='single',
+        fig=None,
+        sourcemeter=iv_generator
 ):
     """generate the layout of the app"""
 
@@ -661,14 +661,16 @@ def page_style(value, style_dict):
 # ======= Power on/off toggle callbacks =======
 @app.callback(
     Output('instr_port_button', 'disabled'),
-    [Input('power_button', 'on')],
+    [
+        Input('power_button', 'on'),
+        Input('instr_port_input', 'value')
+    ],
     [
         State('instr_port_input', 'value'),
         State('instr_port_input', 'placeholder')
-    ],
-    [Event('instr_port_input', 'change')]
+    ]
 )
-def instrument_port_btn_update(pwr_status, text, placeholder):
+def instrument_port_btn_update(pwr_status, _, text, placeholder):
     """enable or disable the connect button
     depending on the port name
     """
@@ -682,11 +684,10 @@ def instrument_port_btn_update(pwr_status, text, placeholder):
 
 @app.callback(
     Output('instr_status_div', 'children'),
-    [],
+    [Input('instr_port_button', 'n_clicks')],
     [State('instr_port_input', 'value')],
-    [Event('instr_port_button', 'click')]
 )
-def instrument_port_btn_click(text):
+def instrument_port_btn_click(_, text):
     """reconnect the instrument to the new com port"""
     iv_generator.connect(text)
     print(iv_generator.ask('*IDN?'))
@@ -714,7 +715,7 @@ def automatic_grey_out_callback(div_id, app):
             answer['opacity'] = 0.3
         return answer
 
-    grey_out.__name__ = 'grey_out_%s' % (div_id)
+    grey_out.__name__ = 'grey_out_%s' % div_id
 
     return grey_out
 
@@ -741,7 +742,7 @@ def automatic_enable_callback(div_id, app):
     def enable(pwr_status):
         return not pwr_status
 
-    enable.__name__ = 'enable_%s' % (div_id)
+    enable.__name__ = 'enable_%s' % div_id
 
     return enable
 
@@ -757,16 +758,12 @@ for div_id in [
 # ======= Callbacks for changing labels =======
 @app.callback(
     Output('source-knob', 'label'),
-    [],
     [
-        State('source-choice', 'value'),
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def source_knob_label(src_type):
+def source_knob_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     return source_label
@@ -774,16 +771,12 @@ def source_knob_label(src_type):
 
 @app.callback(
     Output('source-knob-display', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def source_knob_display_label(scr_type):
+def source_knob_display_label(scr_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(scr_type)
     source_unit, measure_unit = get_source_units(scr_type)
@@ -792,16 +785,12 @@ def source_knob_display_label(scr_type):
 
 @app.callback(
     Output('sweep-start', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_start_label(src_type):
+def sweep_start_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
@@ -809,16 +798,12 @@ def sweep_start_label(src_type):
 
 @app.callback(
     Output('sweep-stop', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_stop_label(src_type):
+def sweep_stop_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
@@ -826,16 +811,12 @@ def sweep_stop_label(src_type):
 
 @app.callback(
     Output('sweep-step', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_step_label(src_type):
+def sweep_step_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
@@ -843,16 +824,12 @@ def sweep_step_label(src_type):
 
 @app.callback(
     Output('sweep-title', 'children'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def sweep_title_label(src_type):
+def sweep_title_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     return html.H4("%s sweep:" % source_label)
@@ -860,16 +837,12 @@ def sweep_title_label(src_type):
 
 @app.callback(
     Output('source-display', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def source_display_label(src_type):
+def source_display_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
@@ -878,48 +851,22 @@ def source_display_label(src_type):
 
 @app.callback(
     Output('measure-display', 'label'),
-    [],
     [
-        State('source-choice', 'value')
+        Input('source-choice', 'value'),
+        Input('mode-choice', 'value')
     ],
-    [
-        Event('source-choice', 'change'),
-        Event('mode-choice', 'change')
-    ]
 )
-def measure_display_label(src_type):
+def measure_display_label(src_type, _):
     """update label upon modification of Radio Items"""
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Measured %s (%s)' % (measure_label, measure_unit)
-# @app.callback(
-#     Output('trigger-measure_btn', 'buttonText'),
-#     [],
-#     [
-#         State('mode-choice', 'value')
-#     ],
-#     [
-#         Event('mode-choice', 'change')
-#     ]
-# )
-# def trigger_measure_label(mode_val):
-#     """update the measure button upon choosing single or sweep"""
-#     if mode_val == 'single':
-#         return 'Single measure'
-#     else:
-#         return 'Start sweep'
 
 
 # ======= Callbacks to change elements in the layout =======
 @app.callback(
     Output('single_div', 'style'),
-    [],
-    [
-        State('mode-choice', 'value')
-    ],
-    [
-        Event('mode-choice', 'change')
-    ]
+    [Input('mode-choice', 'value')]
 )
 def single_div_toggle_style(mode_val):
     """toggle the layout for single measure"""
@@ -935,13 +882,8 @@ def single_div_toggle_style(mode_val):
 
 @app.callback(
     Output('sweep_div', 'style'),
-    [],
-    [
-        State('mode-choice', 'value')
-    ],
-    [
-        Event('mode-choice', 'change')
-    ]
+    [Input('mode-choice', 'value')]
+
 )
 def sweep_div_toggle_style(mode_val):
     """toggle the layout for sweep"""
@@ -957,13 +899,8 @@ def sweep_div_toggle_style(mode_val):
 
 @app.callback(
     Output('source-knob', 'max'),
-    [],
-    [
-        State('source-choice', 'value')
-    ],
-    [
-        Event('source-choice', 'change'),
-    ]
+    [Input('source-choice', 'value')]
+
 )
 def source_knob_max(src_type):
     """update max value upon changing source type"""
@@ -972,13 +909,8 @@ def source_knob_max(src_type):
 
 @app.callback(
     Output('sweep-start', 'max'),
-    [],
-    [
-        State('source-choice', 'value')
-    ],
-    [
-        Event('source-choice', 'change'),
-    ]
+    [Input('source-choice', 'value')]
+
 )
 def sweep_start_max(src_type):
     """update max value upon changing source type"""
@@ -987,13 +919,7 @@ def sweep_start_max(src_type):
 
 @app.callback(
     Output('sweep-stop', 'max'),
-    [],
-    [
-        State('source-choice', 'value')
-    ],
-    [
-        Event('source-choice', 'change'),
-    ]
+    [Input('source-choice', 'value')]
 )
 def sweep_stop_max(src_type):
     """update max value upon changing source type"""
@@ -1002,13 +928,7 @@ def sweep_stop_max(src_type):
 
 @app.callback(
     Output('sweep-step', 'max'),
-    [],
-    [
-        State('source-choice', 'value')
-    ],
-    [
-        Event('source-choice', 'change'),
-    ]
+    [Input('source-choice', 'value')]
 )
 def sweep_step_max(src_type):
     """update max value upon changing source type"""
@@ -1018,17 +938,14 @@ def sweep_step_max(src_type):
 @app.callback(
     Output('trigger-measure_btn', 'buttonText'),
     [
-        Input('measure-triggered', 'value')
+        Input('measure-triggered', 'value'),
+        Input('mode-choice', 'value')
     ],
     [
         State('trigger-measure_btn', 'buttonText'),
-        State('mode-choice', 'value')
-    ],
-    [
-        Event('mode-choice', 'change')
     ]
 )
-def toggle_trigger_measure_button_label(measure_triggered, btn_text, mode_val):
+def toggle_trigger_measure_button_label(measure_triggered, mode_val, btn_text):
     """change the label of the trigger button"""
 
     if mode_val == 'single':
@@ -1046,16 +963,10 @@ def toggle_trigger_measure_button_label(measure_triggered, btn_text, mode_val):
 # ======= Applied/measured values display =======
 @app.callback(
     Output('source-knob', 'value'),
-    [],
-    [
-        State('source-knob', 'value'),
-        State('source-choice', 'value')
-    ],
-    [
-        Event('source-choice', 'change')
-    ]
+    [Input('source-choice', 'value')],
+    [State('source-knob', 'value')]
 )
-def source_change(src_val, src_type):
+def source_change(src_type, src_val):
     """modification upon source-change
     change the source type in local_vars
     reset the knob to zero
@@ -1097,18 +1008,16 @@ def interval_toggle(swp_on, mode_val, dt):
 
 @app.callback(
     Output('refresher', 'n_intervals'),
-    [],
     [
-        State('sweep-status', 'value'),
-        State('mode-choice', 'value'),
-        State('refresher', 'n_intervals')
+        Input('trigger-measure_btn', 'n_clicks'),
+        Input('mode-choice', 'value')
     ],
     [
-        Event('mode-choice', 'change'),
-        Event('trigger-measure_btn', 'click')
+        State('sweep-status', 'value'),
+        State('refresher', 'n_intervals')
     ]
 )
-def reset_interval(swp_on, mode_val, n_interval):
+def reset_interval(_, mode_val, swp_on, n_interval):
     """reset the n_interval of the dcc.Interval once a sweep is done"""
     if mode_val == 'single':
         local_vars.reset_interval()
@@ -1124,6 +1033,7 @@ def reset_interval(swp_on, mode_val, n_interval):
 @app.callback(
     Output('sweep-status', 'value'),
     [
+        Input('trigger-measure_btn', 'n_clicks'),
         Input('source-display', 'value'),
 
     ],
@@ -1134,19 +1044,17 @@ def reset_interval(swp_on, mode_val, n_interval):
         State('sweep-stop', 'value'),
         State('sweep-step', 'value'),
         State('mode-choice', 'value')
-    ],
-    [
-        Event('trigger-measure_btn', 'click')
     ]
 )
 def sweep_activation_toggle(
-    sourced_val,
-    trig_button_text,
-    meas_triggered,
-    swp_on,
-    swp_stop,
-    swp_step,
-    mode_val
+        n_clicks,
+        sourced_val,
+        trig_button_text,
+        _,
+        swp_on,
+        swp_stop,
+        swp_step,
+        mode_val
 ):
     """decide whether to turn on or off the sweep
     when single mode is selected, it is off by default
@@ -1204,9 +1112,9 @@ def set_source_knob_display(knob_val):
     ]
 )
 def update_trigger_measure(
-    nclick,
-    mode_val,
-    swp_on
+        nclick,
+        mode_val,
+        _
 ):
     """ Controls if a measure can be made or not
     The indicator 'measure-triggered' can be set to True only by a click
@@ -1243,15 +1151,15 @@ def update_trigger_measure(
     ]
 )
 def set_source_display(
-    n_interval,
-    meas_triggered,
-    knob_val,
-    old_source_display_val,
-    swp_start,
-    swp_stop,
-    swp_step,
-    mode_val,
-    swp_on
+        n_interval,
+        meas_triggered,
+        knob_val,
+        old_source_display_val,
+        swp_start,
+        swp_stop,
+        swp_step,
+        mode_val,
+        swp_on
 ):
     """"set the source value to the instrument"""
     if mode_val == 'single':
@@ -1285,12 +1193,12 @@ def set_source_display(
     ]
 )
 def update_measure_display(
-    src_val,
-    meas_triggered,
-    meas_old_val,
-    src_type,
-    mode_val,
-    swp_on
+        src_val,
+        meas_triggered,
+        meas_old_val,
+        src_type,
+        mode_val,
+        swp_on
 ):
     """"read the measured value from the instrument
     check if a measure should be made
@@ -1328,9 +1236,7 @@ def update_measure_display(
         Input('source-knob', 'value'),
         Input('clear-graph_btn', 'n_clicks'),
         Input('measure-triggered', 'value')
-    ],
-    [],
-    []
+    ]
 )
 def clear_graph_click(src_val, nclick, meas_triggered):
     """clear the data on the graph
