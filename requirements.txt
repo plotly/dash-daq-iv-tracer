@@ -1,10 +1,9 @@
-dash>=0.26.0
-gunicorn
-plotly
-numpy
-dash-renderer
-dash-html-components
-dash-core-components
-dash_daq-0.0.3.tar.gz
+dash==0.36.0
+gunicorn>=19.8.1
+plotly==3.5.0
+numpy==1.16.1
+dash-html-components==0.13.4
+dash-core-components==0.42.1
+dash_daq==0.1.0
 pyserial
 pyvisa
