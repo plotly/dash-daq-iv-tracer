@@ -4,6 +4,7 @@ plotly==3.5.0
 numpy==1.16.1
 dash-html-components==0.13.4
 dash-core-components==0.42.1
+dash-renderer==0.17.0
 dash_daq==0.1.0
 pyserial
 pyvisa
