@@ -19,7 +19,6 @@ iv_generator = keithley_instruments.KT2400('COM3', mock_mode=True)
 app = dash.Dash('')
 server = app.server
 app.config.suppress_callback_exceptions = False
-app.scripts.config.serve_locally = True
 
 # Load css file
 external_css = ["https://codepen.io/bachibouzouk/pen/ZRjdZN.css"]
