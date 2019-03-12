@@ -16,14 +16,10 @@ from dash_daq_drivers import keithley_instruments
 iv_generator = keithley_instruments.KT2400('COM3', mock_mode=True)
 
 # Define the app
-app = dash.Dash('')
+app = dash.Dash(__name__)
 server = app.server
-app.config.suppress_callback_exceptions = False
 
-# Load css file
-external_css = ["https://codepen.io/bachibouzouk/pen/ZRjdZN.css"]
-for css in external_css:
-    app.css.append_css({"external_url": css})
+app.config.suppress_callback_exceptions = False
 
 
 class UsefulVariables:
@@ -483,8 +479,7 @@ root_layout = html.Div(
                 daq.ToggleSwitch(
                     id='toggleTheme',
                     label='Dark/Light layout',
-                    size=30,
-                    style={'display': 'none'}
+                    size=30
                 ),
                 html.Img(
                     src='https://s3-us-west-1.amazonaws.com/plotly'
@@ -526,8 +521,7 @@ app.layout = root_layout
 # In[]:
 # Create callbacks
 # ======= Dark/light themes callbacks =======
-@app.callback(
-    Output('page-content', 'children'),
+@app.callback(Output('page-content', 'children'),
     [
         Input('toggleTheme', 'value')
     ],
@@ -1156,4 +1150,4 @@ def update_graph(
 # In[]:
 # Main
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, dev_tools_hot_reload=False, host='0.0.0.0')
