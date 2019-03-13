@@ -34,9 +34,9 @@ body {
 .container {
   position: relative;
   width: 100%;
-  max-width: 960px;
+  /*max-width: 960px;*/
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0;
   box-sizing: border-box;
 }
 .column,
@@ -46,23 +46,24 @@ body {
   box-sizing: border-box;
   /*\\border: 1px solid white;*/
   text-align: center;
-  align: center;
+  align-items: center;
 }
 
 /* For devices larger than 400px */
 @media (min-width: 400px) {
   .container {
-    width: 85%;
+    width: 100%; /*Change to 100%*/
     padding: 0; }
 }
 
 /* For devices larger than 550px */
 @media (min-width: 550px) {
   .container {
-    width: 80%; }
+    width: 100%;  /*Change to 100%*/
+  }
   .column,
   .columns {
-    margin-left: 0.5%; }
+    margin-left: 0; }
   .column:first-child,
   .columns:first-child {
     margin-left: 0; }
