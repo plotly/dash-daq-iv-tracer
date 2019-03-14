@@ -55,6 +55,8 @@ body {
 #figure-card {
     border: 1px solid black;
     margin-left: 4.5%; /*Set this to balance 4% margin gap in skeleton*/
+    border-radius: 10px;
+    box-shadow: 0px 0px 5px;
 }
 
 #figure-card > P {
@@ -70,6 +72,8 @@ body {
 }
 
 #up-control-card, #mid-control-card, #bottom-card {
+    border-radius: 10px;
+    box-shadow: 0px 0px 5px;
     width: 100%;
     padding-top: 2%;
     padding-bottom: 2%;
@@ -109,10 +113,11 @@ body {
 
 .daq-button > div > button {
     border-radius: 20px;
-    height: 30px;
+    height: 35px;
     font-size: 11px;
     font-weight: normal;
     background-color: #FF9827;
+
     margin: 10px 0px;
 }
 
@@ -125,7 +130,7 @@ body {
 
 .sweep-div-row {
     width: 80%;
-    margin: 5px 0px;
+    margin: 10px 0px;
 }
 
 #measure-div {
@@ -138,8 +143,10 @@ body {
 #trigger-div {
     display: flex;
     flex-direction: row;
-    width: 90%;
-    justify-content: space-around;
+    width: 80%;
+    justify-content: space-between;
+    margin: 10px 0px;
+
 }
 
 

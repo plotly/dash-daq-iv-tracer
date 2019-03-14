@@ -34,7 +34,7 @@ body {
 .container {
   position: relative;
   width: 100%;
-  /*max-width: 960px;*/
+  max-width: 100%;
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
@@ -44,17 +44,18 @@ body {
   width: 100%;
   float: left;
   box-sizing: border-box;
-  /*\\border: 1px solid white;*/
   text-align: center;
   align-items: center;
 }
 
-/* For devices larger than 400px */
+ /*For devices larger than 400px */
 @media (min-width: 400px) {
   .container {
     width: 100%; /*Change to 100%*/
     padding: 0; }
 }
+
+
 
 /* For devices larger than 550px */
 @media (min-width: 550px) {

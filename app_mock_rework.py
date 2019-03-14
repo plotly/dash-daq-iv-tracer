@@ -139,16 +139,17 @@ def generate_main_layout(
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
 
-    if mode_val == 'single':
-        single_style = single_div_toggle_style
-        sweep_style = {'display': 'none'}
-
-        label_btn = 'Single measure'
-    else:
-        single_style = {'display': 'none'}
-        sweep_style = sweep_div_toggle_style
-
-        label_btn = 'Start sweep'
+    # if mode_val == 'single':
+    #     single_style = single_div_toggle_style
+    #     # sweep_style = {'display': 'none'}
+    #     sweep_style = sweep_div_toggle_style
+    #
+    #     label_btn = 'Single measure'
+    # else:
+    #     single_style = {'display': 'none'}
+    #     sweep_style = sweep_div_toggle_style
+    #
+    #     label_btn = 'Start sweep'
 
     # As the trigger-measure btn will have its n_clicks reset by the reloading
     # of the layout we need to reset this one as well
@@ -264,7 +265,7 @@ def generate_main_layout(
                                         # To perform single measures adjusting the source with a knob
                                         html.Div(
                                             id='single_div',
-                                            style=single_style,
+                                            style=single_div_toggle_style,
                                             children=[
                                                 daq.Knob(
                                                     id='source-knob',
@@ -289,7 +290,7 @@ def generate_main_layout(
                                         # To perform automatic sweeps of the source
                                         html.Div(
                                             id='sweep_div',
-                                            style=sweep_style,
+                                            style=sweep_div_toggle_style,
                                             children=[
                                                 html.Div(
                                                     className='sweep-div-row',
@@ -385,14 +386,14 @@ def generate_main_layout(
                                             ]
                                         )]),
 
-
                                 # Measure button and indicator
                                 html.Div(
                                     id='trigger-div',
                                     children=[
                                         daq.StopButton(
                                             id='trigger-measure_btn',
-                                            buttonText=label_btn,
+                                            # buttonText=label_btn,
+                                            buttonText='Single measure',
                                             className='daq-button',
                                             size=120,
                                         ),
@@ -443,8 +444,8 @@ def generate_main_layout(
         )
     ]
 
-    # if theme == 'dark':
-    #     return daq.DarkThemeProvider(children=html_layout)
+    if theme == 'dark':
+        return daq.DarkThemeProvider(children=html_layout)
     if theme == 'light':
         return html_layout
 
@@ -539,6 +540,7 @@ def page_style(value, style_dict):
 
 
 # ======= Callbacks for changing labels =======
+# ======= Label for single measures =======
 @app.callback(
     Output('source-knob', 'label'),
     [
@@ -566,6 +568,7 @@ def source_knob_display_label(scr_type, _):
     return 'Value : %s (%s)' % (source_label, source_unit)
 
 
+# ======= Label for sweep mode =======
 @app.callback(
     Output('sweep-start', 'label'),
     [
@@ -618,6 +621,7 @@ def sweep_title_label(src_type, _):
     return html.P("%s sweep " % source_label)
 
 
+# ======= Label for displays =======
 @app.callback(
     Output('source-display', 'label'),
     [
@@ -887,6 +891,7 @@ def set_source_display(
                          + (int(n_interval) - 1) * float(swp_step)
                 if answer > float(swp_stop):
                     answer = old_source_display_val
+    print("answer is : ", answer)
 
     return float("%.4f" % answer)
 
