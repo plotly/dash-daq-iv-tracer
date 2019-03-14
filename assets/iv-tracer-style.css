@@ -25,8 +25,8 @@ body {
 }
 
 .intro-banner {
-    padding-left:5%;
-    padding-right:5%;
+    padding-left: 5%;
+    padding-right: 5%;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -43,7 +43,7 @@ body {
 }
 
 #learn-more-button {
-    font-family : 'Maven Pro', sans-serif;
+    font-family: 'Maven Pro', sans-serif;
     font-size: 13px;
     height: 35px;
     padding: 0 30px;
@@ -54,7 +54,13 @@ body {
 
 #figure-card {
     border: 1px solid black;
-    margin-left: 4.5%;    /*Set this to balance 4% margin gap in skeleton*/
+    margin-left: 4.5%; /*Set this to balance 4% margin gap in skeleton*/
+}
+
+#figure-card > P {
+    font-weight: 500;
+    font-size: 16px;
+    margin-top: 5%;
 }
 
 #control-container {
@@ -63,10 +69,10 @@ body {
     margin-left: 1%;
 }
 
-#up-control-card, #bottom-control-card {
+#up-control-card, #mid-control-card, #bottom-card {
     width: 100%;
     padding-top: 2%;
-    padding-bottom:2%;
+    padding-bottom: 2%;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -76,11 +82,14 @@ body {
     line-height: 1.6;
 }
 
-
-label {
+.IV-source-options > label, .measure-options > label, #sweep-title > P {
     font-family: 'Open Sans', sans-serif;
     font-weight: 600;
     font-size: 15px;
+}
+
+#source-div {
+    width: 100%;
 }
 
 #source-choice, #mode-choice {
@@ -102,39 +111,59 @@ label {
     border-radius: 20px;
     height: 30px;
     font-size: 11px;
+    font-weight: normal;
     background-color: #FF9827;
     margin: 10px 0px;
 }
 
-#measure-div {
-    display:flex;
+.sweep-div-row, .sweep-div-row-inner {
+    display: flex;
     flex-direction: row;
-    width:90%;
     justify-content: space-between;
+    align-items: center;
+}
+
+.sweep-div-row {
+    width: 80%;
+    margin: 5px 0px;
+}
+
+#measure-div {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    justify-content: space-between;
+}
+
+#trigger-div {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    justify-content: space-around;
 }
 
 
 /* The Modal (background) */
 .modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0); /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
 }
 
 /* Modal Content/Box */
 .modal-content {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%; /* Could be more or less, depending on screen size */
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
 }
 
 
