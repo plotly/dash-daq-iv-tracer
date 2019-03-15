@@ -1,6 +1,8 @@
 # In[]:
 # Import required libraries
 import numpy as np
+from textwrap import dedent
+
 import plotly.graph_objs as go
 import dash
 import dash_html_components as html
@@ -191,7 +193,8 @@ def generate_main_layout(
                                     }
                                 )
                             }
-                        )]
+                        )
+                    ]
                 ),
                 html.Div(
                     id='control-container',
@@ -449,6 +452,74 @@ def generate_main_layout(
         return html_layout
 
 
+def generate_modal():
+    return html.Div(
+        id='markdown',
+        className="modal",
+        style={'display': 'none'},
+        children=(
+            html.Div(
+                id="markdown-container",
+                className="markdown-container",
+                style={'color': text_color['light'], 'backgroundColor': card_color['light']},
+                children=[
+                    html.Div(
+                        className='close-container',
+                        children=html.Button(
+                            "Close",
+                            id="markdown_close",
+                            n_clicks=0,
+                            className="closeButton"
+                        )
+                    ),
+                    html.Div(
+                        className='markdown-text',
+                        children=dcc.Markdown(
+                            children=dedent('''
+                            *What is this mock app about?*
+    
+                            This is an app to show the graphic elements of Dash DAQ used to create an
+                            interface for an IV curve tracer using a Keithley 2400 SourceMeter. This mock
+                            demo does not actually connect to a physical instrument the values displayed
+                            are generated from an IV curve model for demonstration purposes.
+    
+                            *How to use the mock app*
+    
+                            First choose if you want to source (apply) current or voltage, using the radio
+                            item located on the right of the graph area. Then choose if you want to operate
+                            in a single measurement mode or in a sweep mode.
+    
+                            ***Single measurement mode***
+    
+                            Adjust the value of the source with the knob at the bottom of the graph area
+                            and click on the `SINGLE MEASURE` button, the measured value will be displayed.
+                            Repetition of this procedure for different source values will reveal the full
+                            IV curve.
+    
+                            ***Sweep mode***
+    
+                            Set the sweep parameters `start`, `stop` and `step` as well as the time
+                            spent on each step, then click on the button `START SWEEP`, the result of the
+                            sweep will be displayed on the graph.
+    
+                            The data is never erased unless the button `CLEAR GRAPH is pressed` or if the
+                            source type is changed.
+                            
+                            ***Dark/light theme***
+                            
+                            Click on theme toggle on top of the page to view dark/light layout.
+    
+                            You can purchase the Dash DAQ components at [
+                            dashdaq.io](https://www.dashdaq.io/)
+                        ''')
+                        )
+                    )
+                ]
+            )
+        )
+    )
+
+
 app.layout = html.Div(
     id='main page',
     className='container',
@@ -465,8 +536,8 @@ app.layout = html.Div(
                 html.H6('Dash DAQ: IV Curve Tracer (mock app)'),
                 daq.ToggleSwitch(
                     id='toggleTheme',
-                    label='Light/Dark layout',
-                    size=40
+                    label={'label': 'Light/Dark theme', 'style': {'color': text_color['light']}},
+                    size=35
                 ),
                 html.Img(
                     src='https://s3-us-west-1.amazonaws.com/plotly'
@@ -488,13 +559,16 @@ app.layout = html.Div(
                                     " demo does not actually connect to a physical instrument, the values displayed"
                                     " are generated from an IV curve model for demonstration purposes.",
                            className='intro-banner-text'),
-                    html.Button(id="learn-more-button",
-                                children="Learn More",
-                                style={
-                                    'borderColor': bkg_color['light'],
-                                    'color': text_color['light'],
-                                    'backgroundColor': accent_color['light']
-                                })
+                    html.Button(
+                        id="learn-more-button",
+                        children="Learn More",
+                        n_clicks=0,
+                        style={
+                            'borderColor': bkg_color['light'],
+                            'color': text_color['light'],
+                            'backgroundColor': accent_color['light']
+                        }
+                    )
                 ]
             )
         ),
@@ -503,7 +577,8 @@ app.layout = html.Div(
             children=generate_main_layout(),
             style={'backgroundColor': bkg_color['light'],
                    'padding': '1%'}
-        )
+        ),
+        generate_modal()
     ]
 )
 
@@ -594,6 +669,34 @@ def banner_style(value, style_dict):
 
     style_dict['color'] = text_color[theme]
     return style_dict
+
+
+@app.callback(
+    Output('markdown-container', 'style'),
+    [Input('toggleTheme', 'value')],
+    [State('markdown-container', 'style')]
+)
+def markdown_style(value, style_dict):
+    """update the theme of button"""
+    if value:
+        theme = 'dark'
+    else:
+        theme = 'light'
+
+    style_dict['color'] = text_color[theme]
+    style_dict['backgroundColor'] = card_color[theme]
+    return style_dict
+
+
+# ======= Callbacks for modal popup =======
+@app.callback(Output("markdown", "style"),
+              [Input("learn-more-button", "n_clicks"), Input("markdown_close", "n_clicks")])
+def update_click_output(button_click, close_click):
+    if button_click > close_click:
+        return {"display": "block"}
+    else:
+        return {"display": "none"}
+
 
 # ======= Callbacks for changing labels =======
 # ======= Label for single measures =======
