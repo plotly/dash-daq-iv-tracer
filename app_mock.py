@@ -113,6 +113,7 @@ text_color = {'dark': '#95969A', 'light': '#595959'}
 card_color = {'dark': '#2D3038', 'light': '#FFFFFF'}
 accent_color = {'dark': '#FFD15F', 'light': '#ff9827'}
 
+
 single_div_toggle_style = {
     'width': '80%',
     'display': 'flex',
@@ -469,25 +470,26 @@ def generate_modal():
                             "Close",
                             id="markdown_close",
                             n_clicks=0,
-                            className="closeButton"
+                            className="closeButton",
+                            style={'color': text_color['dark']}
                         )
                     ),
                     html.Div(
                         className='markdown-text',
                         children=dcc.Markdown(
                             children=dedent('''
-                            *What is this mock app about?*
+                            **What is this mock app about?**
     
                             This is an app to show the graphic elements of Dash DAQ used to create an
                             interface for an IV curve tracer using a Keithley 2400 SourceMeter. This mock
                             demo does not actually connect to a physical instrument the values displayed
                             are generated from an IV curve model for demonstration purposes.
     
-                            *How to use the mock app*
+                            **How to use the mock app**
     
                             First choose if you want to source (apply) current or voltage, using the radio
-                            item located on the right of the graph area. Then choose if you want to operate
-                            in a single measurement mode or in a sweep mode.
+                            item located on the right of **Sourcing** label. Then choose if you want to operate
+                            in a **single measurement mode** or in a **sweep mode**.
     
                             ***Single measurement mode***
     
@@ -502,7 +504,7 @@ def generate_modal():
                             spent on each step, then click on the button `START SWEEP`, the result of the
                             sweep will be displayed on the graph.
     
-                            The data is never erased unless the button `CLEAR GRAPH is pressed` or if the
+                            The data is never erased unless the button `CLEAR GRAPH` is pressed, or if the
                             source type is changed.
                             
                             ***Dark/light theme***
@@ -521,10 +523,11 @@ def generate_modal():
 
 
 app.layout = html.Div(
-    id='main page',
+    id='main-page',
     className='container',
     style={'backgroundColor': bkg_color['light'],
-           'height': '100vh'},
+           'height': '100vh'
+           },
     children=[
         dcc.Location(id='url', refresh=False),
         dcc.Interval(id='refresher', interval=1000000),
@@ -593,10 +596,12 @@ app.layout = html.Div(
               [
                   State('source-choice', 'value'),
                   State('mode-choice', 'value'),
-                  State('IV_graph', 'figure')
+                  State('IV_graph', 'figure'),
+                  State('source-display', 'value'),  # Keep measure LED display while changing themes
+                  State('measure-display', 'value')
               ]
               )
-def page_layout(value, src_type, mode_val, fig):
+def page_layout(value, src_type, mode_val, fig, meas_src, meas_display):
     """update the theme of the daq components"""
 
     if value:
@@ -677,7 +682,7 @@ def banner_style(value, style_dict):
     [State('markdown-container', 'style')]
 )
 def markdown_style(value, style_dict):
-    """update the theme of button"""
+    """update the theme of markdown"""
     if value:
         theme = 'dark'
     else:
@@ -685,6 +690,23 @@ def markdown_style(value, style_dict):
 
     style_dict['color'] = text_color[theme]
     style_dict['backgroundColor'] = card_color[theme]
+    return style_dict
+
+
+@app.callback(
+    Output('main-page', 'style'),
+    [Input('toggleTheme', 'value')],
+    [State('main-page', 'style')]
+)
+def markdown_style(value, style_dict):
+    """update the theme of entire page"""
+    if value:
+        theme = 'dark'
+    else:
+        theme = 'light'
+
+    style_dict['color'] = text_color[theme]
+    style_dict['backgroundColor'] = bkg_color[theme]
     return style_dict
 
 
