@@ -21,7 +21,6 @@ body {
     justify-content: space-between;
     height: 60px;
     padding-left: 5%;
-    border: 1px solid black;
 }
 
 .intro-banner {
@@ -30,8 +29,6 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: #FF9827;
-    color: #FFFFFF;
 }
 
 .intro-banner-content {
@@ -48,13 +45,10 @@ body {
     height: 35px;
     padding: 0 30px;
     text-transform: capitalize;
-    color: inherit;
-    border-color: #FFFFFF;
 }
 
 #figure-card {
-    border: 1px solid black;
-    margin-left: 4.5%; /*Set this to balance 4% margin gap in skeleton*/
+    margin-left: 4.5%; /*Set this to balance margin gap in skeleton*/
     border-radius: 10px;
     box-shadow: 0px 0px 5px;
 }
@@ -67,12 +61,11 @@ body {
 
 #control-container {
     vertical-align: top;
-    border: 1px solid red;
     margin-left: 1%;
 }
 
-#up-control-card, #mid-control-card, #bottom-card {
-    border-radius: 10px;
+#up-control-card, #mid-control-card, #bottom-card{
+    border-radius: 15px;
     box-shadow: 0px 0px 5px;
     width: 100%;
     padding-top: 2%;
@@ -80,7 +73,6 @@ body {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    border: 1px solid red;
     justify-content: center;
     align-items: center;
     line-height: 1.6;
@@ -112,13 +104,15 @@ body {
 }
 
 .daq-button > div > button {
-    border-radius: 20px;
-    height: 35px;
+    border-radius: 25px;
     font-size: 11px;
     font-weight: normal;
     background-color: #FF9827;
-
     margin: 10px 0px;
+}
+
+.react-numeric-input > input [type="text"] {
+    color: #595959 !important;
 }
 
 .sweep-div-row, .sweep-div-row-inner {

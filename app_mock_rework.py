@@ -14,6 +14,12 @@ from dash_daq_drivers import keithley_instruments
 # Instance of a Keithley2400
 iv_generator = keithley_instruments.KT2400('COM3', mock_mode=True)
 
+# # Add meta_tags for mobile responsiveness
+# meta_tags = {
+#     'name': 'viewport',
+#     'content': 'width=device-width'
+# }
+
 # Define the app
 app = dash.Dash(__name__)
 server = app.server
@@ -106,16 +112,18 @@ card_color = {'dark': '#2D3038', 'light': '#FFFFFF'}
 accent_color = {'dark': '#FFD15F', 'light': '#ff9827'}
 
 single_div_toggle_style = {
-    'width': '90%',
+    'width': '80%',
     'display': 'flex',
-    'flex-direction': 'row',
-    'justifyContent': 'space-around'
+    'flexDirection': 'row',
+    'margin': 'auto',
+    'alignItems': 'center',
+    'justifyContent': 'space-between'
 }
 
 sweep_div_toggle_style = {
     'display': 'flex',
-    'flex-direction': 'column',
-    'align-items': 'center',
+    'flexDirection': 'column',
+    'alignItems': 'center',
     'justifyContent': 'space-around'
 }
 
@@ -139,18 +147,6 @@ def generate_main_layout(
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
 
-    # if mode_val == 'single':
-    #     single_style = single_div_toggle_style
-    #     # sweep_style = {'display': 'none'}
-    #     sweep_style = sweep_div_toggle_style
-    #
-    #     label_btn = 'Single measure'
-    # else:
-    #     single_style = {'display': 'none'}
-    #     sweep_style = sweep_div_toggle_style
-    #
-    #     label_btn = 'Start sweep'
-
     # As the trigger-measure btn will have its n_clicks reset by the reloading
     # of the layout we need to reset this one as well
     local_vars.reset_n_clicks()
@@ -164,7 +160,6 @@ def generate_main_layout(
     html_layout = [
         html.Div(
             className='row',
-            style={'border': '1px solid black'},
             children=[
                 html.Div(
                     id='figure-card',
@@ -175,14 +170,16 @@ def generate_main_layout(
                         html.P("IV Curve"),
                         dcc.Graph(
                             id='IV_graph',
+                            style={'marginBottom': '10px'},
                             figure={
                                 'data': data,
                                 'layout': dict(
                                     paper_bgcolor=card_color[theme],
                                     plot_bgcolor=card_color[theme],
+                                    margin={'l': 80, 'b': 80, 't': 50, 'r': 80, 'pad': 0},
                                     font=dict(
                                         color=text_color[theme],
-                                        size=15,
+                                        size=12,
                                     ),
                                     xaxis={
                                         'color': grid_color[theme],
@@ -297,6 +294,7 @@ def generate_main_layout(
                                                     children=[
                                                         html.Div(
                                                             className='sweep-div-row',
+                                                            style={'width': '98%'},
                                                             children=[
                                                                 html.Div(
                                                                     id='sweep-title',
@@ -374,7 +372,8 @@ def generate_main_layout(
                                                                 daq.NumericInput(
                                                                     id='sweep-dt',
                                                                     value=0.2,
-                                                                    min=0.01
+                                                                    min=0.01,
+                                                                    style={'color': text_color[theme]}
                                                                 ),
                                                                 's'
                                                             ],
@@ -422,7 +421,7 @@ def generate_main_layout(
                                                 source_label,
                                                 source_unit
                                             ),
-                                            value="0.0000",
+                                            value=0.0000,
                                             color=accent_color[theme]
                                         ),
                                         daq.LEDDisplay(
@@ -431,7 +430,7 @@ def generate_main_layout(
                                                 measure_label,
                                                 measure_unit
                                             ),
-                                            value="0.0000",
+                                            value=0.0000,
                                             color=accent_color[theme]
                                         )
                                     ]
@@ -477,7 +476,10 @@ app.layout = html.Div(
             ]
         ),
         html.Div(
+            id='intro-banner',
             className='intro-banner',
+            style={'color': text_color['light'],
+                   'backgroundColor': accent_color['light']},
             children=html.Div(
                 className='intro-banner-content',
                 children=[
@@ -486,7 +488,13 @@ app.layout = html.Div(
                                     " demo does not actually connect to a physical instrument, the values displayed"
                                     " are generated from an IV curve model for demonstration purposes.",
                            className='intro-banner-text'),
-                    html.Button(id="learn-more-button", children="Learn More")
+                    html.Button(id="learn-more-button",
+                                children="Learn More",
+                                style={
+                                    'borderColor': bkg_color['light'],
+                                    'color': text_color['light'],
+                                    'backgroundColor': accent_color['light']
+                                })
                 ]
             )
         ),
@@ -494,7 +502,7 @@ app.layout = html.Div(
             id='page-content',
             children=generate_main_layout(),
             style={'backgroundColor': bkg_color['light'],
-                   'paddingTop': '1%'}
+                   'padding': '1%'}
         )
     ]
 )
@@ -535,9 +543,57 @@ def page_style(value, style_dict):
         theme = 'light'
 
     style_dict['color'] = text_color[theme]
-    style_dict['background'] = bkg_color[theme]
+    style_dict['backgroundColor'] = bkg_color[theme]
     return style_dict
 
+
+@app.callback(
+    Output('header', 'style'),
+    [Input('toggleTheme', 'value')],
+    [State('header', 'style')]
+)
+def header_style(value, style_dict):
+    """update the theme of header"""
+    if value:
+        theme = 'dark'
+    else:
+        theme = 'light'
+
+    style_dict['color'] = text_color[theme]
+    style_dict['backgroundColor'] = bkg_color[theme]
+    return style_dict
+
+
+@app.callback(
+    Output('intro-banner', 'style'),
+    [Input('toggleTheme', 'value')],
+    [State('intro-banner', 'style')]
+)
+def banner_style(value, style_dict):
+    """update the theme of banner"""
+    if value:
+        theme = 'dark'
+    else:
+        theme = 'light'
+
+    style_dict['color'] = text_color[theme]
+    return style_dict
+
+
+@app.callback(
+    Output('learn-more-button', 'style'),
+    [Input('toggleTheme', 'value')],
+    [State('learn-more-button', 'style')]
+)
+def banner_style(value, style_dict):
+    """update the theme of button"""
+    if value:
+        theme = 'dark'
+    else:
+        theme = 'light'
+
+    style_dict['color'] = text_color[theme]
+    return style_dict
 
 # ======= Callbacks for changing labels =======
 # ======= Label for single measures =======
@@ -891,7 +947,6 @@ def set_source_display(
                          + (int(n_interval) - 1) * float(swp_step)
                 if answer > float(swp_stop):
                     answer = old_source_display_val
-    print("answer is : ", answer)
 
     return float("%.4f" % answer)
 
@@ -1033,7 +1088,7 @@ def update_graph(
                     mode='lines+markers',
                     name='IV curve',
                     line={
-                        'color': '#EF553B',
+                        'color': accent_color[theme],
                         'width': 2
                     }
                 )
@@ -1058,11 +1113,11 @@ def update_graph(
                     },
                     font=dict(
                         color=text_color[theme],
-                        size=15,
+                        size=12,
                     ),
-                    margin={'l': 100, 'b': 100, 't': 50, 'r': 20, 'pad': 0},
-                    plot_bgcolor=bkg_color[theme],
-                    paper_bgcolor=bkg_color[theme]
+                    margin={'l': 80, 'b': 80, 't': 50, 'r': 80, 'pad': 0},
+                    plot_bgcolor=card_color[theme],
+                    paper_bgcolor=card_color[theme]
                 )
             }
         else:
@@ -1086,7 +1141,7 @@ def update_graph(
                     mode='lines+markers',
                     name='IV curve',
                     line={
-                        'color': '#EF553B',
+                        'color': accent_color[theme],
                         'width': 2
                     }
                 )
@@ -1111,11 +1166,11 @@ def update_graph(
                     },
                     font=dict(
                         color=text_color[theme],
-                        size=15,
+                        size=12,
                     ),
-                    margin={'l': 100, 'b': 100, 't': 50, 'r': 20, 'pad': 0},
-                    plot_bgcolor=bkg_color[theme],
-                    paper_bgcolor=bkg_color[theme]
+                    margin={'l': 80, 'b': 80, 't': 50, 'r': 80, 'pad': 0},
+                    plot_bgcolor=card_color[theme],
+                    paper_bgcolor=card_color[theme]
                 )
             }
         else:
