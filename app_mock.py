@@ -154,6 +154,7 @@ def generate_main_layout(
 
     html_layout = [
         html.Div(
+            id="page-body-content",
             className='row',
             children=[
                 html.Div(
@@ -239,8 +240,8 @@ def generate_main_layout(
                                 ),
                                 daq.Indicator(
                                     id='clear-graph_ind',
-                                    value=False,
-                                    # style={'display': 'none'}
+                                    color=accent_color[theme],
+                                    value=False
                                 )
                             ]
                         ),
@@ -387,7 +388,6 @@ def generate_main_layout(
                                     children=[
                                         daq.StopButton(
                                             id='trigger-measure_btn',
-                                            # buttonText=label_btn,
                                             buttonText='Single measure',
                                             className='daq-button',
                                             size=120,
@@ -417,7 +417,7 @@ def generate_main_layout(
                                                 source_label,
                                                 source_unit
                                             ),
-                                            value=0.0000,
+                                            value=0.00,
                                             color=accent_color[theme]
                                         ),
                                         daq.LEDDisplay(
@@ -531,7 +531,9 @@ app.layout = html.Div(
                 html.H6('Dash DAQ: IV Curve Tracer (mock app)'),
                 daq.ToggleSwitch(
                     id='toggleTheme',
-                    label={'label': 'Light/Dark theme', 'style': {'color': text_color['light']}},
+                    label=['Light', 'Dark'],
+                    style={'margin': 'auto', 'color': text_color['light']},
+                    value=False,
                     size=35
                 ),
                 html.Img(
@@ -544,7 +546,7 @@ app.layout = html.Div(
         html.Div(
             id='intro-banner',
             className='intro-banner',
-            style={'color': text_color['light'],
+            style={'color': '#FFFFFF',
                    'backgroundColor': accent_color['light']},
             children=html.Div(
                 className='intro-banner-content',
@@ -560,7 +562,7 @@ app.layout = html.Div(
                         n_clicks=0,
                         style={
                             'borderColor': bkg_color['light'],
-                            'color': text_color['light'],
+                            'color': '#FFFFFF',
                             'backgroundColor': accent_color['light']
                         }
                     )
@@ -643,38 +645,6 @@ def header_style(value, style_dict):
 
     style_dict['color'] = text_color[theme]
     style_dict['backgroundColor'] = bkg_color[theme]
-    return style_dict
-
-
-@app.callback(
-    Output('intro-banner', 'style'),
-    [Input('toggleTheme', 'value')],
-    [State('intro-banner', 'style')]
-)
-def banner_style(value, style_dict):
-    """update the theme of banner"""
-    if value:
-        theme = 'dark'
-    else:
-        theme = 'light'
-
-    style_dict['color'] = text_color[theme]
-    return style_dict
-
-
-@app.callback(
-    Output('learn-more-button', 'style'),
-    [Input('toggleTheme', 'value')],
-    [State('learn-more-button', 'style')]
-)
-def banner_style(value, style_dict):
-    """update the theme of button"""
-    if value:
-        theme = 'dark'
-    else:
-        theme = 'light'
-
-    style_dict['color'] = text_color[theme]
     return style_dict
 
 
@@ -997,7 +967,8 @@ def set_source_display(
                 if answer > float(swp_stop):
                     answer = old_source_display_val
 
-    return float("%.4f" % answer)
+    answer = float("%.4f" % answer)
+    return answer
 
 
 @app.callback(
@@ -1107,7 +1078,7 @@ def clear_graph_click(src_val, nclick, meas_triggered):
 )
 def update_graph(
         measured_val,
-        clear_graph,  # Had to do this because of the lack of multiple Outputs
+        clear_graph,
         theme,
         meas_triggered,
         graph_data,

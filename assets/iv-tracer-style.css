@@ -32,7 +32,8 @@ body {
 }
 
 .intro-banner-content {
-    padding: 10px 0;
+    padding: 15px 0;
+    width:60%;
 }
 
 .intro-banner-text {
@@ -52,9 +53,9 @@ body {
     border-radius: 10px;
     box-shadow: 0 6px 14px rgba(80,103,132,.2);
     display: flex;
+    height: 100% !important;
     flex-direction: column;
     justify-content: center;
-    height:100%;
 }
 
 #page-content > div {
@@ -96,7 +97,12 @@ body {
 #source-choice-toggle > label, #mode-choice-toggle >label {
     padding:10px;
     white-space:nowrap;
+
 }
+
+ #toggleTheme > label {
+     font-weight: 700;
+ }
 
 .IV-source-options > label, .measure-options > label, #sweep-title > P {
     font-family: 'Open Sans', sans-serif;
@@ -116,11 +122,16 @@ body {
     padding: 5px;
 }
 
+#sweep-dt > div > span > input[type="text"] {
+    color: #95969A !important;
+}
+
 .daq-button > div > button {
     border-radius: 25px;
     font-size: 11px;
     font-weight: normal;
     background-color: #FF9827;
+    border:1px #FF9827;
     margin: 10px 0px;
 }
 
