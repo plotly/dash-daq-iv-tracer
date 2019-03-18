@@ -129,19 +129,12 @@ sweep_div_toggle_style = {
     'justifyContent': 'space-around'
 }
 
-label_style = {
-    'display': 'flex',
-    'flex-orientation': 'row',
-    'justify-content': 'space-around',
-    'font-size': '14px'
-}
-
 
 # Create controls using a function
 def generate_main_layout(
         theme='light',
         src_type='Voltage',
-        mode_val='single',
+        mode_val='Single measure',
         fig=None,
 ):
     """generate the layout of the app"""
@@ -207,45 +200,37 @@ def generate_main_layout(
                                    'color': text_color[theme]},
                             children=[
                                 html.Div(
-                                    className='IV-source-options',
+                                    id="control-sections",
                                     children=[
-                                        html.Label("Sourcing", title='Choose whether you want to source voltage '
-                                                                     'and measure current, or source current and measure voltage'),
+                                        html.Div(
+                                            className='IV-source-options',
+                                            children=[
+                                                html.Label("Sourcing",
+                                                           title='Choose whether you want to source voltage '
+                                                                 'and measure current, or source current and measure voltage'),
 
-                                        daq.ToggleSwitch(
-                                            id='source-choice-toggle',
-                                            label=['Voltage', 'Current'],
-                                            style={'width': '200px', 'margin': 'auto'},
-                                            value=False
-                                        )
-
-                                        # dcc.RadioItems(
-                                        #     id='source-choice',
-                                        #     options=[
-                                        #         {'label': 'Voltage', 'value': 'V'},
-                                        #         {'label': 'Current', 'value': 'I'}
-                                        #     ],
-                                        #     value=src_type,
-                                        #     labelStyle=label_style
-                                        # ),
-                                    ],
-                                ),
-                                html.Div(
-                                    className='measure-options',
-                                    children=[
-                                        html.Label('Measure mode', title='Choose if you want to do single measurement'
-                                                                         ' or to start a sweep mode'),
-                                        dcc.RadioItems(
-                                            id='mode-choice',
-                                            options=[
-                                                {'label': 'Single measure', 'value': 'single'},
-                                                {'label': 'Sweep', 'value': 'sweep'}
+                                                daq.ToggleSwitch(
+                                                    id='source-choice-toggle',
+                                                    label=['Voltage', 'Current'],
+                                                    style={'width': '150px', 'margin': 'auto'},
+                                                    value=False
+                                                )
                                             ],
-                                            value=mode_val,
-                                            labelStyle=label_style
-                                        )
-                                    ]
-                                ),
+                                        ),
+                                        html.Div(
+                                            className='measure-options',
+                                            children=[
+                                                html.Label('Measure mode',
+                                                           title='Choose if you want to do single measurement'
+                                                                 ' or to start a sweep mode'),
+                                                daq.ToggleSwitch(
+                                                    id="mode-choice-toggle",
+                                                    label=['Single measure', 'Sweep'],
+                                                    style={'width': '150px', 'margin': 'auto'},
+                                                    value=False
+                                                )
+                                            ]
+                                        )]),
                                 daq.StopButton(
                                     id='clear-graph_btn',
                                     buttonText='Clear Graph',
@@ -255,7 +240,7 @@ def generate_main_layout(
                                 daq.Indicator(
                                     id='clear-graph_ind',
                                     value=False,
-                                    style={'display': 'none'}
+                                    # style={'display': 'none'}
                                 )
                             ]
                         ),
@@ -603,18 +588,23 @@ app.layout = html.Div(
               ],
               [
                   State('source-choice-toggle', 'value'),
-                  State('mode-choice', 'value'),
+                  State('mode-choice-toggle', 'value'),
                   State('IV_graph', 'figure'),
                   State('source-display', 'value'),  # Keep measure LED display while changing themes
                   State('measure-display', 'value')
               ]
               )
-def page_layout(value, src_value, mode_val, fig, meas_src, meas_display):
+def page_layout(value, src_choice, mode_choice, fig, meas_src, meas_display):
     """update the theme of the daq components"""
-    if src_value:
+    if src_choice:
         src_type = 'Current'
     else:
         src_type = 'Voltage'
+
+    if mode_choice:
+        mode_val = 'Sweep'
+    else:
+        mode_val = 'Single measure'
 
     if value:
         return generate_main_layout('dark', src_type, mode_val, fig)
@@ -733,189 +723,79 @@ def update_click_output(button_click, close_click):
 
 
 # ======= Callbacks for changing labels =======
-# ======= Label for single measures =======
+# ======= Label for single measures, sweep mode, displays =======
 @app.callback(
-    Output('source-knob', 'label'),
+    [
+        Output('source-knob', 'label'),
+        Output('source-knob-display', 'label'),
+        Output('sweep-start', 'label'),
+        Output('sweep-stop', 'label'),
+        Output('sweep-step', 'label'),
+        Output('sweep-title', 'children'),
+        Output('source-display', 'label'),
+        Output('measure-display', 'label')
+    ],
     [
         Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
+        Input('mode-choice-toggle', 'value')
+    ]
 )
-def source_knob_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
+def update_labels(src_choice, _):
+    if src_choice:
         src_type = 'Current'
     else:
         src_type = 'Voltage'
-    source_label, measure_label = get_source_labels(src_type)
-    return source_label
 
-
-@app.callback(
-    Output('source-knob-display', 'label'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def source_knob_display_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
-    return 'Value : %s (%s)' % (source_label, source_unit)
-
-
-# ======= Label for sweep mode =======
-@app.callback(
-    Output('sweep-start', 'label'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def sweep_start_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
-    source_unit, measure_unit = get_source_units(src_type)
-    return '(%s)' % source_unit
-
-
-@app.callback(
-    Output('sweep-stop', 'label'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def sweep_stop_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
-    source_unit, measure_unit = get_source_units(src_type)
-    return '(%s)' % source_unit
-
-
-@app.callback(
-    Output('sweep-step', 'label'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def sweep_step_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
-    source_unit, measure_unit = get_source_units(src_type)
-    return '(%s)' % source_unit
-
-
-@app.callback(
-    Output('sweep-title', 'children'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def sweep_title_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
-    source_label, measure_label = get_source_labels(src_type)
-    return html.P("%s sweep " % source_label)
-
-
-# ======= Label for displays =======
-@app.callback(
-    Output('source-display', 'label'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def source_display_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
-    source_label, measure_label = get_source_labels(src_type)
-    source_unit, measure_unit = get_source_units(src_type)
-    return 'Applied %s (%s)' % (source_label, source_unit)
-
-
-@app.callback(
-    Output('measure-display', 'label'),
-    [
-        Input('source-choice-toggle', 'value'),
-        Input('mode-choice', 'value')
-    ],
-)
-def measure_display_label(src_value, _):
-    """update label upon modification of Radio Items"""
-    if src_value:
-        src_type = 'Current'
-    else:
-        src_type = 'Voltage'
-    source_label, measure_label = get_source_labels(src_type)
-    source_unit, measure_unit = get_source_units(src_type)
-    return 'Measured %s (%s)' % (measure_label, measure_unit)
+    return source_label, 'Value : %s (%s)' % (
+        source_label, source_unit), '(%s)' % source_unit, '(%s)' % source_unit, '(%s)' % source_unit, html.P(
+        "%s sweep " % source_label), 'Applied %s (%s)' % (source_label, source_unit), 'Measured %s (%s)' % (
+               measure_label, measure_unit)
 
 
 @app.callback(
     Output('trigger-measure_btn', 'buttonText'),
+
     [
-        Input('mode-choice', 'value')
+        Input('mode-choice-toggle', 'value')
     ],
 )
-def trigger_measure_label(mode_val):
+def trigger_measure_label(mode_choice):
     """update the measure button upon choosing single or sweep"""
-    if mode_val == 'single':
-        return 'Single measure'
+    if mode_choice:
+        return "Start sweep"
     else:
-        return 'Start sweep'
+        return "Single measure"
 
 
 # ======= Callbacks to change elements in the layout =======
 @app.callback(
     Output('single_div', 'style'),
     [
-        Input('mode-choice', 'value')
+        Input('mode-choice-toggle', 'value')
     ],
 )
-def single_div_toggle(mode_val):
+def single_div_toggle(mode_choice):
     """toggle the layout for single measure"""
-    if mode_val == 'single':
-        return single_div_toggle_style
-    else:
+    if mode_choice:
         return {'display': 'none'}
+    else:
+        return single_div_toggle_style
 
 
 @app.callback(
     Output('sweep_div', 'style'),
     [
-        Input('mode-choice', 'value')
+        Input('mode-choice-toggle', 'value')
     ],
 )
-def sweep_div_toggle(mode_val):
+def sweep_div_toggle(mode_choice):
     """toggle the layout for sweep"""
-    if mode_val == 'single':
-        return {'display': 'none'}
-    else:
+    if mode_choice:
         return sweep_div_toggle_style
+    else:
+        return {'display': 'none'}
 
 
 # ======= Applied/measured values display =======
@@ -950,46 +830,46 @@ def source_change(src_type, src_val):
         Input('sweep-status', 'value')
     ],
     [
-        State('mode-choice', 'value'),
+        State('mode-choice-toggle', 'value'),
         State('sweep-dt', 'value')
     ]
 )
-def interval_toggle(swp_on, mode_val, dt):
+def interval_toggle(swp_on, mode_choice, dt):
     """change the interval to high frequency for sweep"""
     if dt <= 0:
         # Precaution against the user
         dt = 0.5
-    if mode_val == 'single':
-        return 1000000
-    else:
+    if mode_choice:
         if swp_on:
             return dt * 1000
         else:
             return 1000000
+    else:
+        return 1000000
 
 
 @app.callback(
     Output('refresher', 'n_intervals'),
     [
         Input('trigger-measure_btn', 'n_clicks'),
-        Input('mode-choice', 'value')
+        Input('mode-choice-toggle', 'value')
     ],
     [
         State('sweep-status', 'value'),
         State('refresher', 'n_intervals')
     ]
 )
-def reset_interval(_, mode_val, swp_on, n_interval):
+def reset_interval(_, mode_choice, swp_on, n_interval):
     """reset the n_interval of the dcc.Interval once a sweep is done"""
-    if mode_val == 'single':
-        local_vars.reset_interval()
-        return 0
-    else:
+    if mode_choice:
         if swp_on:
             return n_interval
         else:
             local_vars.reset_interval()
             return 0
+    else:
+        local_vars.reset_interval()
+        return 0
 
 
 @app.callback(
@@ -1003,7 +883,7 @@ def reset_interval(_, mode_val, swp_on, n_interval):
         State('sweep-status', 'value'),
         State('sweep-stop', 'value'),
         State('sweep-step', 'value'),
-        State('mode-choice', 'value')
+        State('mode-choice-toggle', 'value')
     ]
 )
 def sweep_activation_toggle(
@@ -1013,7 +893,7 @@ def sweep_activation_toggle(
         swp_on,
         swp_stop,
         swp_step,
-        mode_val
+        mode_choice
 ):
     """decide whether to turn on or off the sweep
     when single mode is selected, it is off by default
@@ -1021,7 +901,7 @@ def sweep_activation_toggle(
     otherwise it stops the sweep once the sourced value gets higher or equal
     than the sweep limit minus the sweep step
     """
-    if mode_val == 'single':
+    if mode_choice is False:
         return False
     else:
         if swp_on:
@@ -1054,7 +934,7 @@ def set_source_knob_display(knob_val):
     Output('measure-triggered', 'value'),
     [
         Input('trigger-measure_btn', 'n_clicks'),
-        Input('mode-choice', 'value')
+        Input('mode-choice-toggle', 'value')
     ]
 )
 def update_trigger_measure(nclick, _):
@@ -1087,7 +967,7 @@ def update_trigger_measure(nclick, _):
         State('sweep-start', 'value'),
         State('sweep-stop', 'value'),
         State('sweep-step', 'value'),
-        State('mode-choice', 'value'),
+        State('mode-choice-toggle', 'value'),
         State('sweep-status', 'value')
     ]
 )
@@ -1099,7 +979,7 @@ def set_source_display(
         swp_start,
         swp_stop,
         swp_step,
-        mode_val,
+        mode_choice,
         swp_on
 ):
     """"set the source value to the instrument"""
@@ -1107,7 +987,7 @@ def set_source_display(
     # Default answer
     answer = old_source_display_val
 
-    if mode_val == 'single':
+    if mode_choice is False:
         answer = knob_val
     else:
         if meas_triggered:
@@ -1128,8 +1008,8 @@ def set_source_display(
     [
         State('measure-triggered', 'value'),
         State('measure-display', 'value'),
-        State('source-choice', 'value'),
-        State('mode-choice', 'value'),
+        State('source-choice-toggle', 'value'),
+        State('mode-choice-toggle', 'value'),
         State('sweep-status', 'value')
     ]
 )
@@ -1137,8 +1017,8 @@ def update_measure_display(
         src_val,
         meas_triggered,
         meas_old_val,
-        src_type,
-        mode_val,
+        src_choice,
+        mode_choice,
         swp_on
 ):
     """"read the measured value from the instrument
@@ -1147,10 +1027,15 @@ def update_measure_display(
     read the measure value and return it
     by default it simply return the value previously available
     """
+    if src_choice:
+        src_type = 'I'
+    else:
+        src_type = 'V'
+
     source_value = float(src_val)
     measured_value = meas_old_val
 
-    if mode_val == 'single':
+    if mode_choice is False:
         if meas_triggered:
             # Save the sourced value
             local_vars.sourced_values.append(source_value)
@@ -1215,8 +1100,8 @@ def clear_graph_click(src_val, nclick, meas_triggered):
         State('toggleTheme', 'value'),
         State('measure-triggered', 'value'),
         State('IV_graph', 'figure'),
-        State('source-choice', 'value'),
-        State('mode-choice', 'value'),
+        State('source-choice-toggle', 'value'),
+        State('mode-choice-toggle', 'value'),
         State('sweep-status', 'value')
     ]
 )
@@ -1226,8 +1111,8 @@ def update_graph(
         theme,
         meas_triggered,
         graph_data,
-        src_type,
-        mode_val,
+        src_choice,
+        mode_choice,
         swp_on
 ):
     """"update the IV graph"""
@@ -1236,11 +1121,16 @@ def update_graph(
     else:
         theme = 'light'
 
+    if src_choice:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
+
     # Labels for sourced and measured quantities
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
 
-    if mode_val == 'single':
+    if mode_choice is False:
         if meas_triggered:
             # The change to the graph was triggered by a measure
 

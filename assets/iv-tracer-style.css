@@ -86,25 +86,26 @@ body {
     line-height: 1.6;
 }
 
+#control-sections{
+    display:flex;
+    flex-direction:column;
+    width: 80%;
+    line-height:1.8;
+}
+
+#source-choice-toggle > label, #mode-choice-toggle >label {
+    padding:10px;
+    white-space:nowrap;
+}
+
 .IV-source-options > label, .measure-options > label, #sweep-title > P {
     font-family: 'Open Sans', sans-serif;
     font-weight: 600;
     font-size: 15px;
 }
 
-#source-choice_toggle > div > label > #text {
-    font-size: 11px;
-}
-
 #source-div {
     width: 100%;
-}
-
-#source-choice, #mode-choice {
-    display: flex;
-    flex-direction: row;
-    width: 60%;
-    justify-content: space-around;
 }
 
 .IV-source-options, .measure-options {
@@ -121,6 +122,10 @@ body {
     font-weight: normal;
     background-color: #FF9827;
     margin: 10px 0px;
+}
+
+.daq-button > div > button:hover {
+    background-color: #FFC261 !important;
 }
 
 .react-numeric-input > input [type="text"] {
