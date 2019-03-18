@@ -78,13 +78,13 @@ class UsefulVariables:
 local_vars = UsefulVariables()
 
 
-def get_source_labels(source='V'):
+def get_source_labels(source='Voltage'):
     """labels for source/measure elements"""
-    if source == 'V':
+    if source == 'Voltage':
         # we source voltage and measure current
         source_label = 'Voltage'
         measure_label = 'Current'
-    elif source == 'I':
+    elif source == 'Current':
         # we source current and measure voltage
         source_label = 'Current'
         measure_label = 'Voltage'
@@ -92,13 +92,13 @@ def get_source_labels(source='V'):
     return source_label, measure_label
 
 
-def get_source_units(source='V'):
+def get_source_units(source='Voltage'):
     """units for source/measure elements"""
-    if source == 'V':
+    if source == 'Voltage':
         # we source voltage and measure current
         source_unit = 'V'
         measure_unit = 'A'
-    elif source == 'I':
+    elif source == 'Current':
         # we source current and measure voltage
         source_unit = 'A'
         measure_unit = 'V'
@@ -112,7 +112,6 @@ grid_color = {'dark': '#53555B', 'light': '#969696'}
 text_color = {'dark': '#95969A', 'light': '#595959'}
 card_color = {'dark': '#2D3038', 'light': '#FFFFFF'}
 accent_color = {'dark': '#FFD15F', 'light': '#ff9827'}
-
 
 single_div_toggle_style = {
     'width': '80%',
@@ -141,7 +140,7 @@ label_style = {
 # Create controls using a function
 def generate_main_layout(
         theme='light',
-        src_type='V',
+        src_type='Voltage',
         mode_val='single',
         fig=None,
 ):
@@ -179,7 +178,7 @@ def generate_main_layout(
                                 'layout': dict(
                                     paper_bgcolor=card_color[theme],
                                     plot_bgcolor=card_color[theme],
-                                    margin={'l': 80, 'b': 80, 't': 50, 'r': 80, 'pad': 0},
+                                    margin={'l': 80, 'b': 80, 't': 80, 'r': 80, 'pad': 0},
                                     font=dict(
                                         color=text_color[theme],
                                         size=12,
@@ -212,15 +211,23 @@ def generate_main_layout(
                                     children=[
                                         html.Label("Sourcing", title='Choose whether you want to source voltage '
                                                                      'and measure current, or source current and measure voltage'),
-                                        dcc.RadioItems(
-                                            id='source-choice',
-                                            options=[
-                                                {'label': 'Voltage', 'value': 'V'},
-                                                {'label': 'Current', 'value': 'I'}
-                                            ],
-                                            value=src_type,
-                                            labelStyle=label_style
-                                        ),
+
+                                        daq.ToggleSwitch(
+                                            id='source-choice-toggle',
+                                            label=['Voltage', 'Current'],
+                                            style={'width': '200px', 'margin': 'auto'},
+                                            value=False
+                                        )
+
+                                        # dcc.RadioItems(
+                                        #     id='source-choice',
+                                        #     options=[
+                                        #         {'label': 'Voltage', 'value': 'V'},
+                                        #         {'label': 'Current', 'value': 'I'}
+                                        #     ],
+                                        #     value=src_type,
+                                        #     labelStyle=label_style
+                                        # ),
                                     ],
                                 ),
                                 html.Div(
@@ -579,7 +586,8 @@ app.layout = html.Div(
             id='page-content',
             children=generate_main_layout(),
             style={'backgroundColor': bkg_color['light'],
-                   'padding': '1%'}
+                   'display': 'flex',
+                   'padding': '2%'}
         ),
         generate_modal()
     ]
@@ -594,15 +602,19 @@ app.layout = html.Div(
                   Input('toggleTheme', 'value')
               ],
               [
-                  State('source-choice', 'value'),
+                  State('source-choice-toggle', 'value'),
                   State('mode-choice', 'value'),
                   State('IV_graph', 'figure'),
                   State('source-display', 'value'),  # Keep measure LED display while changing themes
                   State('measure-display', 'value')
               ]
               )
-def page_layout(value, src_type, mode_val, fig, meas_src, meas_display):
+def page_layout(value, src_value, mode_val, fig, meas_src, meas_display):
     """update the theme of the daq components"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
 
     if value:
         return generate_main_layout('dark', src_type, mode_val, fig)
@@ -725,12 +737,16 @@ def update_click_output(button_click, close_click):
 @app.callback(
     Output('source-knob', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def source_knob_label(src_type, _):
+def source_knob_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_label, measure_label = get_source_labels(src_type)
     return source_label
 
@@ -738,14 +754,18 @@ def source_knob_label(src_type, _):
 @app.callback(
     Output('source-knob-display', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def source_knob_display_label(scr_type, _):
+def source_knob_display_label(src_value, _):
     """update label upon modification of Radio Items"""
-    source_label, measure_label = get_source_labels(scr_type)
-    source_unit, measure_unit = get_source_units(scr_type)
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
+    source_label, measure_label = get_source_labels(src_type)
+    source_unit, measure_unit = get_source_units(src_type)
     return 'Value : %s (%s)' % (source_label, source_unit)
 
 
@@ -753,12 +773,16 @@ def source_knob_display_label(scr_type, _):
 @app.callback(
     Output('sweep-start', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def sweep_start_label(src_type, _):
+def sweep_start_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
 
@@ -766,12 +790,16 @@ def sweep_start_label(src_type, _):
 @app.callback(
     Output('sweep-stop', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def sweep_stop_label(src_type, _):
+def sweep_stop_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
 
@@ -779,12 +807,16 @@ def sweep_stop_label(src_type, _):
 @app.callback(
     Output('sweep-step', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def sweep_step_label(src_type, _):
+def sweep_step_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_unit, measure_unit = get_source_units(src_type)
     return '(%s)' % source_unit
 
@@ -792,12 +824,16 @@ def sweep_step_label(src_type, _):
 @app.callback(
     Output('sweep-title', 'children'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def sweep_title_label(src_type, _):
+def sweep_title_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_label, measure_label = get_source_labels(src_type)
     return html.P("%s sweep " % source_label)
 
@@ -806,12 +842,16 @@ def sweep_title_label(src_type, _):
 @app.callback(
     Output('source-display', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def source_display_label(src_type, _):
+def source_display_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Applied %s (%s)' % (source_label, source_unit)
@@ -820,12 +860,16 @@ def source_display_label(src_type, _):
 @app.callback(
     Output('measure-display', 'label'),
     [
-        Input('source-choice', 'value'),
+        Input('source-choice-toggle', 'value'),
         Input('mode-choice', 'value')
     ],
 )
-def measure_display_label(src_type, _):
+def measure_display_label(src_value, _):
     """update label upon modification of Radio Items"""
+    if src_value:
+        src_type = 'Current'
+    else:
+        src_type = 'Voltage'
     source_label, measure_label = get_source_labels(src_type)
     source_unit, measure_unit = get_source_units(src_type)
     return 'Measured %s (%s)' % (measure_label, measure_unit)
@@ -1240,7 +1284,7 @@ def update_graph(
                         color=text_color[theme],
                         size=12,
                     ),
-                    margin={'l': 80, 'b': 80, 't': 50, 'r': 80, 'pad': 0},
+                    margin={'l': 80, 'b': 80, 't': 80, 'r': 80, 'pad': 0},
                     plot_bgcolor=card_color[theme],
                     paper_bgcolor=card_color[theme]
                 )
@@ -1293,7 +1337,7 @@ def update_graph(
                         color=text_color[theme],
                         size=12,
                     ),
-                    margin={'l': 80, 'b': 80, 't': 50, 'r': 80, 'pad': 0},
+                    margin={'l': 80, 'b': 80, 't': 80, 'r': 80, 'pad': 0},
                     plot_bgcolor=card_color[theme],
                     paper_bgcolor=card_color[theme]
                 )
