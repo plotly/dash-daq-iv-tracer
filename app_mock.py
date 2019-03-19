@@ -479,9 +479,8 @@ def generate_modal():
     
                             **How to use the mock app**
     
-                            First choose if you want to source (apply) current or voltage, using the radio
-                            item located on the right of **Sourcing** label. Then choose if you want to operate
-                            in a **single measurement mode** or in a **sweep mode**.
+                            First choose if you want to source (apply) current or voltage, using the toggle switch under **Sourcing** label. 
+                            Then choose if you want to operate in a **single measurement mode** or in a **sweep mode**.
     
                             ***Single measurement mode***
     
@@ -645,6 +644,22 @@ def header_style(value, style_dict):
 
     style_dict['color'] = text_color[theme]
     style_dict['backgroundColor'] = bkg_color[theme]
+    return style_dict
+
+
+@app.callback(
+    Output('intro-banner', 'style'),
+    [Input('toggleTheme', 'value')],
+    [State('intro-banner', 'style')]
+)
+def markdown_style(value, style_dict):
+    """update the theme of banner"""
+    if value:
+        theme = 'dark'
+    else:
+        theme = 'light'
+
+    style_dict['color'] = '#FFFFFF'
     return style_dict
 
 
