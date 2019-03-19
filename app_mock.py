@@ -166,13 +166,13 @@ def generate_main_layout(
                         html.P("IV Curve"),
                         dcc.Graph(
                             id='IV_graph',
-                            style={'marginBottom': '10px'},
+                            style={'width': '100%'},
                             figure={
                                 'data': data,
                                 'layout': dict(
                                     paper_bgcolor=card_color[theme],
                                     plot_bgcolor=card_color[theme],
-                                    margin={'l': 80, 'b': 80, 't': 80, 'r': 80, 'pad': 0},
+                                    automargin=True,
                                     font=dict(
                                         color=text_color[theme],
                                         size=12,
@@ -1160,7 +1160,7 @@ def update_graph(
                         color=text_color[theme],
                         size=12,
                     ),
-                    margin={'l': 80, 'b': 80, 't': 80, 'r': 80, 'pad': 0},
+                    automargin=True,
                     plot_bgcolor=card_color[theme],
                     paper_bgcolor=card_color[theme]
                 )
@@ -1213,7 +1213,7 @@ def update_graph(
                         color=text_color[theme],
                         size=12,
                     ),
-                    margin={'l': 80, 'b': 80, 't': 80, 'r': 80, 'pad': 0},
+                    automargin=True,
                     plot_bgcolor=card_color[theme],
                     paper_bgcolor=card_color[theme]
                 )
