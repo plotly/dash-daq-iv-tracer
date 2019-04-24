@@ -16,12 +16,6 @@ from dash_daq_drivers import keithley_instruments
 # Instance of a Keithley2400
 iv_generator = keithley_instruments.KT2400('COM3', mock_mode=True)
 
-# # Add meta_tags for mobile responsiveness
-# meta_tags = {
-#     'name': 'viewport',
-#     'content': 'width=device-width'
-# }
-
 # Define the app
 app = dash.Dash(__name__)
 server = app.server
@@ -106,7 +100,7 @@ def get_source_units(source='Voltage'):
     return source_unit, measure_unit
 
 
-# Font and background colors associated with each themes
+# Font and background colors associated with each theme
 bkg_color = {'dark': '#23262e', 'light': '#f6f6f7'}
 grid_color = {'dark': '#53555B', 'light': '#969696'}
 text_color = {'dark': '#95969A', 'light': '#595959'}
@@ -551,7 +545,7 @@ app.layout = html.Div(
                 className='intro-banner-content',
                 children=[
                     html.P(children="This app uses graphic elements of Dash DAQ to create an"
-                                    " interface for an IV curve tracer using a Keithley 2400 SourceMeter. Mock"
+                                    " interface for an IV curve tracer using a Keithley 2400 SourceMeter. The mock"
                                     " demo does not actually connect to a physical instrument, the values displayed"
                                     " are generated from an IV curve model for demonstration purposes.",
                            className='intro-banner-text'),
@@ -1178,6 +1172,9 @@ def update_graph(
 
             xdata = data_array[0, :]
             ydata = data_array[1, :]
+
+            print("xdata:", xdata)
+            print("ydata:", ydata)
 
             data_for_graph = [
                 go.Scatter(

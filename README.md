@@ -1,17 +1,15 @@
-# Dash-daq-iv-tracer
+# Dash DAQ IV Tracer
 
 ## Introduction
-`dash-daq-iv-tracer` uses the graphic elements of Dash DAQ to create interface for acquiring current-voltage I-V curves with a Keithley 2400 SourceMeter.
+`dash-daq-iv-tracer` uses the graphic elements of Dash DAQ to create an interface for acquiring current-voltage I-V curves with a Keithley 2400 SourceMeter.
+[Try this demo app](https://dash-gallery.plotly.host/dash-daq-iv-tracer) on the Dash Deployment Server], and read more about the code in [our blog post](https://www.dashdaq.io/build-an-i-v-curve-tracer-with-a-keithley-2400-sourcemeter-in-python).
 
-Try this [demo app on dash deployment server](https://dash-gallery.plotly.host/dash-daq-iv-tracer), and get to know how it is created from [our blog post](https://www.dashdaq.io/build-an-i-v-curve-tracer-with-a-keithley-2400-sourcemeter-in-python).
-
-
-### Technique/field associated with the instrument
+### IV Curves
 I-V curve is a good way to characterize electronic components (diode, transistor or solar cells) and extract their operating properties. It is widely used in electrical engineering and physics. 
-Keithley 2400 SourceMeter provides precision voltage and current sourcing as well as measurement. 
+The Keithley 2400 SourceMeter provides precision voltage and current sourcing as well as measurement. 
 
 ### dash-daq
-[Dash DAQ](dashdaq.io) is a data acquisition and control package built on top of Plotly's [Dash](https://plot.ly/products/dash/). 
+[Dash DAQ](dash.plot.ly/dash-daq) is a data acquisition and control package built on top of Plotly's [Dash](https://plot.ly/products/dash/). 
 
 ![Animated1](img/Screencast.gif)
 ## Requirements
@@ -42,7 +40,7 @@ and all of the required `pip` packages, will be installed, and the app will be a
 
 ## How to use the app
 
-To control your SourceMeter, you need to set the `mock` attribute to `False` in the `app.py` file
+To control your SourceMeter, you need to set the `mock` attribute to `False` in the `app.py` file.
 
 ```
 iv_generator = keithley_instruments.KT2400(mock_mode=False)
@@ -75,11 +73,11 @@ $ python app_mock.py
 
 You can also set the `mock` attribute to `True` in the `app.py` file.
 
-Open http://0.0.0.0:8050/ in your browser, and mock app interface will be displayed.
+Open http://0.0.0.0:8050/ in your browser, and a mock app interface will be displayed.
 
 ![initial](img/Screenshot_light.png)
 
-View dark theme layout of this app by clicking on the toggle in the header.
+View the dark theme layout of this app by clicking on the toggle in the header.
 
 ![initial](img/Screenshot_dark.png)
 
@@ -91,8 +89,8 @@ View dark theme layout of this app by clicking on the toggle in the header.
 * Clear Graph button: Clear plot.
 * LED Display: Measured value will be reflected on LED display.
 
-Click **LEARN MORE** button on the app to learn more about how outputs on your app responds to controls.
-For more detailed explanations please refer to the [blogpost](https://www.dashdaq.io/build-an-i-v-curve-tracer-with-a-keithley-2400-sourcemeter-in-python)
+Click the **LEARN MORE** button on the app to learn more about the interactions involved in this app.
+For more detailed explanations please refer to the [blog post](https://www.dashdaq.io/build-an-i-v-curve-tracer-with-a-keithley-2400-sourcemeter-in-python)
 
 
 ## Resources
